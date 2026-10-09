@@ -1,0 +1,11 @@
+# Environment variables - never commit keys
+.env
+.env.*
+*.env
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
