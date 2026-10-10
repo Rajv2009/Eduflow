@@ -1,6 +1,6 @@
 # EduFlow OS: Product Requirements Document (PRD)
 
-Version 1.0 (MVP, single client). Status: draft for build.
+Version 1.1 (MVP, single client). Status: draft for build.
 
 ## 1. Overview
 
@@ -37,6 +37,8 @@ Non-goals (MVP): parent/student login or app, online fee payment gateway, exams/
 
 Classes (8th, 9th, 10th) contain Batches. Each batch has its own set of subjects chosen by the client (e.g. "10th All Subjects": 6 subjects, "10th Normal": 3 subjects). Students join batches through enrollments. Fees and attendance belong to the enrollment.
 
+Students are always shown in separate sections per class (8th, 9th, 10th), with batches inside each class section; they are never mixed across classes. A student's class always comes from the batch of their active enrollment, never from a stored field on the student. When a student is promoted, the old enrollment is ended (left_on) and a new enrollment is created in the new class's batch; history is kept.
+
 ## 6. Scope by module
 
 ### M1 Classes, batches, subjects
@@ -49,8 +51,10 @@ Classes (8th, 9th, 10th) contain Batches. Each batch has its own set of subjects
 
 - FR-2.1 Add a student with name, parent name, parent WhatsApp number, class and batch, enrollment date, fee.
 - FR-2.2 Edit student details. Archive and restore a student. "Remove from batch" ends the enrollment (left_on), history is kept.
-- FR-2.3 Student row shows name, class/batch, parent name, parent number, fee badge. Detail panel shows enrollment date, fee summary, payments, message history.
+- FR-2.3 Students page shows one section per class (8th, 9th, 10th), with batches inside each class section; students are never mixed across classes. Class always comes from the active enrollment's batch.
 - FR-2.4 Warn on duplicate name in the same batch or duplicate parent phone.
+- FR-2.5 Student rows stay compact: name with student code, fee badge, attendance % badge (with a warning style below 75%), and a small actions menu. Parent name and number, enrollment date, fee structure, attendance summary (total days, present days, %) and payment history appear only in a detail panel when the row is tapped; on mobile the row is a card and the detail panel is a bottom sheet.
+- FR-2.6 A read view (`v_students_overview`) provides class, batch, student, student_code, parent name, parent phone, enrollment date, fee_total, and (once payments exist) paid, remaining and fee status, as the single read source for the Students page list and detail panel.
 
 ### M3 Fees
 
@@ -72,9 +76,10 @@ Classes (8th, 9th, 10th) contain Batches. Each batch has its own set of subjects
 
 ### M5 Attendance
 
-- FR-5.1 Mark attendance batch-wise per date (present/absent).
+- FR-5.1 Mark attendance batch-wise per date (present/absent). Present and Absent are the only statuses for now.
 - FR-5.2 Absent students get a WhatsApp message to the parent with one click ("Notify parents"), previewing the list first. One message per student per date.
 - FR-5.3 Attendance for a date can be corrected; changes are logged.
+- FR-5.4 A derived view (`v_attendance_summary`) computes per enrollment: total_days = distinct dates on which attendance was saved for that batch on or after the student's joined_on, present_days, and attendance_percent. It is calculated live and never stored. Days with no saved attendance and days before joining do not count.
 
 ### M6 Leads and AI call (last stage)
 
@@ -97,6 +102,8 @@ Classes (8th, 9th, 10th) contain Batches. Each batch has its own set of subjects
 4. A message shows "Sent" only after Meta accepts it.
 5. Phone numbers are stored as E.164 (91XXXXXXXXXX), 10-digit Indian mobile validated.
 6. A parent must have opted in before receiving messages (consent flag per student).
+7. A student's class is never stored on the student; it always comes from the batch of the active enrollment (promotion = end old enrollment, create new one).
+8. Attendance percentage is always calculated live from saved attendance, never stored.
 
 ## 8. Non-functional requirements
 
