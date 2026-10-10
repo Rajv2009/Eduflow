@@ -23,6 +23,8 @@ Rule for every ticket: nothing is hard-deleted, and each ticket is done only whe
 | T-103 | `enrollment_fees` view (paid, remaining, status) | Pending/Partial/Paid shown correctly for test data | P0 |
 | T-104 | RPC `add_payment` with remaining check, receipt number, idempotency key | Overpayment, zero and duplicate key are rejected | P0 |
 | T-105 | RPC `cancel_payment` with reason | Payment shows Cancelled; status recalculates | P0 |
+| T-109 | `v_students_overview` view: class, batch, student, student_code, parent name, parent phone, enrollment date, fee_total, paid, remaining, fee status | One row per active enrollment; class always from the enrollment's batch; used as the single read source for the Students page | P0 |
+| T-110 | `v_attendance_summary` view: total_days, present_days, attendance_percent per enrollment | Live-calculated, never stored; counts only saved attendance dates on/after joined_on; days before joining do not count | P0 |
 | T-106 | RLS policies per security matrix + DELETE blocked by policy and trigger | Owner cannot delete any row; select/insert/update work | P0 |
 | T-107 | Audit triggers on core tables | Every change creates an audit_log row | P0 |
 | T-108 | Seed script for dev only | Sample classes, batches, students load on dev; script refuses to run on live | P1 |
@@ -36,10 +38,11 @@ Rule for every ticket: nothing is hard-deleted, and each ticket is done only whe
 | T-203 | Classes page: add, rename, archive, restore | Changes persist after refresh; archived hidden unless toggle on | P0 |
 | T-204 | Batches: add/edit/archive with default fee and subject checkboxes | Subjects saved per batch; two batches in one class can differ | P0 |
 | T-205 | Class then Batch dependent dropdown component | Batch list changes with class; used on all pages | P0 |
-| T-206 | Students table (`studentsTable`) with filters and search | Shows name, class/batch, parent name/number, joined, fee badge | P0 |
+| T-206 | Students page: sections per class (8th, 9th, 10th) with batches inside, never mixed | Class comes from active enrollment's batch (via v_students_overview); no cross-class mixed table | P0 |
+| T-206b | Students compact rows: name + student_code, fee badge, attendance % badge (warning below 75%), small actions menu | Parent name/number, enrollment date, fee structure, attendance summary and payment history only in the detail panel; mobile: row = card, detail = bottom sheet | P0 |
 | T-207 | Add student modal with validation and duplicate warnings | Invalid phone blocked; duplicate name/phone warns; saved as 91XXXXXXXXXX | P0 |
-| T-208 | Student detail modal (enrollment date, parent info, fee summary) | All fields correct against DB | P0 |
-| T-209 | Remove from batch / archive student with undo and restore | Row hidden, history kept, restore works | P0 |
+| T-208 | Student detail modal (enrollment date, parent info, fee summary, attendance summary, payment history) | All fields correct against DB views | P0 |
+| T-209 | Remove from batch / archive student with undo and restore; promotion = end old enrollment + create new one | Row hidden, history kept, restore works; promoted student appears in the new class section | P0 |
 | T-210 | Fee set/edit per student with change logged | Fee change appears in audit log; cannot go below amount already paid | P0 |
 | T-211 | Fees table (`feesTable`) with total/paid/remaining/status | Matches `enrollment_fees` view | P0 |
 | T-212 | Add payment with confirmation screen | Confirm screen shows name, batch, parent name, last 4 phone digits, amount, mode | P0 |
