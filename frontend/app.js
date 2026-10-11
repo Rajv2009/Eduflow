@@ -44,7 +44,7 @@
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
     const page = $("page-" + pageId);
     if (page) page.classList.add("active");
-    document.querySelectorAll("..nav-item[data-page]").forEach((n) => n.classList.remove("active"));
+    document.querySelectorAll(".nav-item[data-page]").forEach((n) => n.classList.remove("active"));
     if (navEl) navEl.classList.add("active");
   }
 
