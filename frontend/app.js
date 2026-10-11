@@ -2,6 +2,8 @@
 // Rules: user data via textContent only; no sign-up; errors in plain Hinglish.
 // Auth check at startup uses supabase.auth.getUser() (verifies with server,
 // not just local storage) so an expired session never shows the app.
+// Guard: if the Supabase client failed to init (supabase.js self-check),
+// we never call supabase.auth.* and show a plain setup error instead.
 
 (function () {
   "use strict";
@@ -42,7 +44,7 @@
     document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
     const page = $("page-" + pageId);
     if (page) page.classList.add("active");
-    document.querySelectorAll(".nav-item[data-page]").forEach((n) => n.classList.remove("active"));
+    document.querySelectorAll("..nav-item[data-page]").forEach((n) => n.classList.remove("active"));
     if (navEl) navEl.classList.add("active");
   }
 
@@ -53,6 +55,18 @@
   document.querySelectorAll(".nav-item[data-soon]").forEach((item) => {
     item.addEventListener("click", () => showToast("Ye page coming soon hai 🚧", "warn"));
   });
+
+  // ---------- Guard: Supabase client missing? ----------
+  if (typeof supabase === "undefined" || !supabase || !supabase.auth) {
+    // supabase.js self-check already wrote a clear message into #bootStatus.
+    // Disable login so the raw crash never reaches the user.
+    const btn = $("loginBtn");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Setup error — config check karo";
+    }
+    return; // Do not bind login/session code below.
+  }
 
   // ---------- Login ----------
   $("loginForm").addEventListener("submit", async (e) => {
