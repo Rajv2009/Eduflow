@@ -16,6 +16,7 @@
     </div>
     <div class="login-title">Edu<span style="color:var(--brand)">Flow</span> OS</div>
     <div class="login-sub">Coaching Management — Owner Login</div>
+    <div id="bootStatus" class="login-error" style="display:none"></div>
     <form id="loginForm">
       <div class="form-group" style="margin-bottom:14px">
         <label for="loginEmail">Email</label>
@@ -175,6 +176,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>')}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
 <script src="app.js"></script>
