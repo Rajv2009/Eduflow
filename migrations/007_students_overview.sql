@@ -1,55 +1,53 @@
 -- =============================================================
--- Migration 007: v_students_overview (single read source for
---                Students page — class-wise sections, never mixed)
--- Project: EduFlow OS | Environment: DEV ONLY
--- Depends on: 001 (enrollments, students), 002 (payments),
---             003 (enrollment_fees logic)
--- Rules: idempotent, non-destructive, class always from batch
+-- Migration 007 (final, as applied): v_students_overview
+-- Project: EduFlow OS | Environment: DEV first, then LIVE
+-- Depends on: 001-006 (enrollment_fees, v_attendance_summary)
+-- Rules: idempotent, non-destructive, class always comes from the batch
 -- =============================================================
 
 begin;
 
--- =============================================================
--- v_students_overview: one row per active enrollment.
--- Students page reads ONLY this view, never raw tables.
--- Class always comes from the batch of the active enrollment
--- (never from a student field — promotion = new enrollment).
--- security_invoker = underlying RLS applies.
--- =============================================================
-create or replace view public.v_students_overview
-with (security_invoker = true) as
+-- v_students_overview: single read source for the Students page.
+-- One row per active enrollment. Class always comes from the batch of the active
+-- enrollment (promotion = new enrollment), so students are never mixed between classes.
+-- Fee and attendance numbers come from the existing views (single source of truth).
+-- fee_status: pending | partial | paid | not_set (fee 0 is never shown as paid).
+create or replace view public.v_students_overview with (security_invoker = true) as
 select
   s.id            as student_id,
   s.student_code,
   s.full_name     as student_name,
   s.parent_name,
   s.parent_phone,
+  s.parent_opt_in,
   c.id            as class_id,
   c.name          as class_name,
+  c.created_at    as class_created_at,
+  c.archived_at   as class_archived_at,
   b.id            as batch_id,
   b.name          as batch_name,
+  b.created_at    as batch_created_at,
+  b.archived_at   as batch_archived_at,
   e.id            as enrollment_id,
   e.joined_on     as enrollment_date,
-  e.fee_total,
-  coalesce(p.paid, 0) as paid,
-  e.fee_total - coalesce(p.paid, 0) as remaining,
-  case
-    when e.fee_total = 0 or coalesce(p.paid, 0) >= e.fee_total then 'paid'
-    when coalesce(p.paid, 0) <= 0 then 'pending'
-    else 'partial'
-  end as fee_status
+  f.fee_total,
+  f.paid,
+  f.remaining,
+  f.fee_status,
+  a.total_days,
+  a.present_days,
+  a.absent_days,
+  a.attendance_percent
 from public.enrollments e
 join public.students s on s.id = e.student_id
 join public.batches b  on b.id = e.batch_id
 join public.classes c  on c.id = b.class_id
-left join (
-  select enrollment_id, sum(amount) as paid
-  from public.payments
-  where status = 'active'
-  group by enrollment_id
-) p on p.enrollment_id = e.id
+join public.enrollment_fees f on f.enrollment_id = e.id
+join public.v_attendance_summary a on a.enrollment_id = e.id
 where e.left_on is null
   and e.archived_at is null
   and s.archived_at is null;
+
+revoke all on all tables in schema public from anon;
 
 commit;
