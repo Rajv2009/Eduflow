@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+/* EduFlow OS — styles copied from coaching_crm.html prototype
+   (same vars, colors, spacing). Additions: login screen, "coming soon"
+   nav state, mobile responsive. */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand:        #4F46E5;
+  --brand-light:  #EEF2FF;
+  --brand-mid:    #818CF8;
+  --success:      #10B981;
+  --success-bg:   #ECFDF5;
+  --warn:         #F59E0B;
+  --warn-bg:      #FFFBEB;
+  --danger:       #EF4444;
+  --danger-bg:    #FEF2F2;
+  --info:         #0EA5E9;
+  --info-bg:      #F0F9FF;
+  --purple:       #8B5CF6;
+  --purple-bg:    #F5F3FF;
+  --bg:           #F8FAFC;
+  --surface:      #FFFFFF;
+  --border:       #E2E8F0;
+  --border-dark:  #CBD5E1;
+  --text-primary: #0F172A;
+  --text-secondary:#64748B;
+  --text-muted:   #94A3B8;
+  --nav-w:        240px;
+  --header-h:     60px;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:       0 4px 16px rgba(0,0,0,.07);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,.10);
+}
+
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text-primary);
+       display:flex; flex-direction:column; min-height:100vh; font-size:14px; }
+
+/* ───── TOP NAV BAR ───── */
+.topbar {
+  height:var(--header-h); background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 20px 0 0;
+  position:fixed; top:0; left:0; right:0; z-index:100; box-shadow:var(--shadow-sm);
+}
+.topbar .logo { width:var(--nav-w); display:flex; align-items:center; gap:10px;
+  padding:0 20px; flex-shrink:0; border-right:1px solid var(--border); height:100%; }
+.logo-icon { width:34px; height:34px; background:var(--brand); border-radius:10px;
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:16px; }
+.logo-text { font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:15px; color:var(--text-primary); }
+.logo-text span { color:var(--brand); }
+
+.topbar-center { flex:1; display:flex; align-items:center; padding:0 24px; }
+.search-wrap { position:relative; max-width:360px; width:100%; }
+.search-wrap input { width:100%; padding:8px 12px 8px 36px; border:1px solid var(--border);
+  border-radius:var(--radius-sm); font-size:13px; color:var(--text-primary);
+  background:var(--bg); outline:none; transition:.2s; }
+.search-wrap input:focus { border-color:var(--brand); background:#fff; }
+.search-wrap svg { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text-muted); }
+
+.topbar-right { display:flex; align-items:center; gap:8px; }
+.icon-btn { width:36px; height:36px; border-radius:var(--radius-sm); border:1px solid var(--border);
+  background:var(--surface); display:flex; align-items:center; justify-content:center;
+  color:var(--text-secondary); cursor:pointer; position:relative; transition:.15s; }
+.icon-btn:hover { background:var(--bg); border-color:var(--brand-mid); color:var(--brand); }
+.user-chip { display:flex; align-items:center; gap:8px; padding:4px 10px 4px 4px;
+  border:1px solid var(--border); border-radius:24px; background:var(--surface); }
+.user-name { font-size:13px; font-weight:600; color:var(--text-primary); }
+.avatar { width:34px; height:34px; border-radius:50%; background:var(--brand);
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  font-weight:700; font-size:13px; cursor:pointer; margin-left:4px; flex-shrink:0; }
+
+/* ───── SIDEBAR ───── */
+.sidebar { width:var(--nav-w); background:var(--surface); border-right:1px solid var(--border);
+  position:fixed; left:0; top:var(--header-h); bottom:0; overflow-y:auto;
+  display:flex; flex-direction:column; z-index:50; }
+.sidebar::-webkit-scrollbar { width:4px; }
+.sidebar::-webkit-scrollbar-thumb { background:var(--border-dark); border-radius:2px; }
+
+.nav-section { padding:20px 12px 8px; }
+.nav-label { font-size:10.5px; font-weight:700; color:var(--text-muted); letter-spacing:.08em;
+             text-transform:uppercase; padding:0 8px; margin-bottom:4px; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:var(--radius-sm);
+            color:var(--text-secondary); cursor:pointer; font-size:13.5px; font-weight:500;
+            transition:.15s; position:relative; margin-bottom:2px; }
+.nav-item svg { flex-shrink:0; }
+.nav-item:hover { background:var(--bg); color:var(--text-primary); }
+.nav-item.active { background:var(--brand-light); color:var(--brand); font-weight:600; }
+.nav-item.active svg { color:var(--brand); }
+.nav-item.disabled { color:var(--text-muted
