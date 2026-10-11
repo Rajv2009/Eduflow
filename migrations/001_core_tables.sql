@@ -1,18 +1,12 @@
 -- =============================================================
--- Migration 001 (rev 2): Core tables
--- Tables: profiles, classes, subjects, batches, batch_subjects,
---         students, enrollments
--- Project: EduFlow OS | Environment: DEV ONLY
--- Rules: idempotent, non-destructive, RLS on (no policies yet),
---        DELETE blocked (REVOKE + trigger), archive not delete
+-- Migration 001 (as applied): core tables
+-- Tables: profiles, classes, subjects, batches, batch_subjects, students, enrollments
+-- Rules: idempotent, non-destructive, RLS on (policies in 005),
+--        DELETE revoked + blocked by trigger (statement-level added in 001b)
 -- =============================================================
 
 begin;
 
--- -------------------------------------------------------------
--- 1. profiles: Supabase Auth user -> app link (owner role)
---    user_id has NO delete cascade (hard rule: no delete paths)
--- -------------------------------------------------------------
 create table if not exists public.profiles (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null unique references auth.users(id),
@@ -21,9 +15,6 @@ create table if not exists public.profiles (
   created_at  timestamptz not null default now()
 );
 
--- -------------------------------------------------------------
--- 2. classes (8th, 9th, 10th - teacher-created)
--- -------------------------------------------------------------
 create table if not exists public.classes (
   id           uuid primary key default gen_random_uuid(),
   name         text not null,
@@ -31,14 +22,10 @@ create table if not exists public.classes (
   created_at   timestamptz not null default now()
 );
 
--- Unique active class name (case-insensitive)
 create unique index if not exists classes_active_name_unique
   on public.classes (lower(name))
   where archived_at is null;
 
--- -------------------------------------------------------------
--- 3. subjects (teacher-created)
--- -------------------------------------------------------------
 create table if not exists public.subjects (
   id           uuid primary key default gen_random_uuid(),
   name         text not null,
@@ -46,14 +33,10 @@ create table if not exists public.subjects (
   created_at   timestamptz not null default now()
 );
 
--- Unique active subject name (case-insensitive)
 create unique index if not exists subjects_active_name_unique
   on public.subjects (lower(name))
   where archived_at is null;
 
--- -------------------------------------------------------------
--- 4. batches (inside a class, with default fee)
--- -------------------------------------------------------------
 create table if not exists public.batches (
   id           uuid primary key default gen_random_uuid(),
   class_id     uuid not null references public.classes(id),
@@ -64,14 +47,10 @@ create table if not exists public.batches (
   created_at   timestamptz not null default now()
 );
 
--- Unique active batch name per class (case-insensitive)
 create unique index if not exists batches_active_name_unique
   on public.batches (class_id, lower(name))
   where archived_at is null;
 
--- -------------------------------------------------------------
--- 5. batch_subjects (which subject belongs to which batch)
--- -------------------------------------------------------------
 create table if not exists public.batch_subjects (
   id          uuid primary key default gen_random_uuid(),
   batch_id    uuid not null references public.batches(id),
@@ -80,9 +59,6 @@ create table if not exists public.batch_subjects (
   unique (batch_id, subject_id)
 );
 
--- -------------------------------------------------------------
--- 6. students (with auto student_code, E.164 phone, opt-in)
--- -------------------------------------------------------------
 create sequence if not exists student_code_seq;
 
 create table if not exists public.students (
@@ -98,9 +74,6 @@ create table if not exists public.students (
   created_at    timestamptz not null default now()
 );
 
--- -------------------------------------------------------------
--- 7. enrollments (student <-> batch, history kept)
--- -------------------------------------------------------------
 create table if not exists public.enrollments (
   id            uuid primary key default gen_random_uuid(),
   student_id    uuid not null references public.students(id),
@@ -113,21 +86,16 @@ create table if not exists public.enrollments (
   created_at    timestamptz not null default now()
 );
 
--- left_on can never be before joined_on
 alter table public.enrollments
   drop constraint if exists enrollments_dates_valid;
 alter table public.enrollments
   add constraint enrollments_dates_valid
   check (left_on is null or left_on >= joined_on);
 
--- One active enrollment per student per batch
 create unique index if not exists enrollments_active_unique
   on public.enrollments (student_id, batch_id)
   where left_on is null and archived_at is null;
 
--- =============================================================
--- A1. Enable RLS on ALL 7 tables (no policies yet = fully locked)
--- =============================================================
 alter table public.profiles        enable row level security;
 alter table public.classes         enable row level security;
 alter table public.subjects        enable row level security;
@@ -136,10 +104,7 @@ alter table public.batch_subjects  enable row level security;
 alter table public.students        enable row level security;
 alter table public.enrollments     enable row level security;
 
--- =============================================================
--- A2a. REVOKE DELETE from anon and authenticated (all 7 tables)
--- =============================================================
-revoke delete on public.profiles       from anon, authenticated;
+revoke delete on public.profiles        from anon, authenticated;
 revoke delete on public.classes         from anon, authenticated;
 revoke delete on public.subjects        from anon, authenticated;
 revoke delete on public.batches         from anon, authenticated;
@@ -147,9 +112,6 @@ revoke delete on public.batch_subjects  from anon, authenticated;
 revoke delete on public.students        from anon, authenticated;
 revoke delete on public.enrollments     from anon, authenticated;
 
--- =============================================================
--- A2b. BEFORE DELETE trigger on core tables (raises exception)
--- =============================================================
 create or replace function public.fn_block_delete()
 returns trigger
 language plpgsql
