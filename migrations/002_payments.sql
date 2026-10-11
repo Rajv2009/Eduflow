@@ -14,7 +14,7 @@ create table if not exists public.payments (
   mode             text not null default 'cash' check (mode in ('cash','upi')),
   txn_ref          text,
   receipt_no       text not null unique,
-  status           text not null default 'active' 'active','cancelled'),
+  status           text not null default 'active' check (status in ('active','cancelled')),
   cancelled_reason text,
   cancelled_by     uuid references auth.users(id),
   cancelled_at     timestamptz,
