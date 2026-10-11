@@ -14,7 +14,7 @@ create table if not exists public.attendance (
   enrollment_id  uuid not null references public.enrollments(id),
   att_date       date not null,
   status         text not null check (status in ('present','absent')),
-  marked_by      uuid references auth users(id) default auth.uid(),
+  marked_by      uuid references auth.users(id) default auth.uid(),
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now(),
   unique (enrollment_id, att_date)
