@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow OS — Coaching Management</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div id="loginScreen" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">EF</div>
+    </div>
+    <div class="login-title">Edu<span style="color:var(--brand)">Flow</span> OS</div>
+    <div class="login-sub">Coaching Management — Owner Login</div>
+    <form id="loginForm">
+      <div class="form-group" style="margin-bottom:14px">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required autocomplete="username">
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <button type="submit" class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════ APP (hidden until logged in) ══════════ -->
+<div id="app" style="display:none">
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">EF</div>
+    <div class="logo-text">Edu<span>Flow</span> OS</div>
+  </div>
+  <div class="topbar-center">
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search…" id="globalSearch" disabled>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip" id="userChip" title="Owner">
+      <div class="avatar" id="userAvatar">O</div>
+      <span class="user-name" id="userName">Owner</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="logoutBtn">Logout</button>
+  </div>
+</header>
+
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-page="dashboard" id="navDashboard">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Students</div>
+    <div class="nav-item" data-page="students" id="navStudents">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      All Students
+    </div>
+    <div class="nav-item" data-page="attendance" id="navAttendance">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Attendance
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Finance</div>
+    <div class="nav-item" data-page="fees" id="navFees">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Fee Management
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Classes</div>
+    <div class="nav-item" data-page="classes" id="navClasses">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      Classes &amp; Batches
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Coming soon</div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      AI Call Log
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      WhatsApp Messages
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Alerts &amp; Escalations
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Parent Updates
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Academic Performance
+      <span class="nav-soon">Soon</span>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div style="font-size:12px;font-weight:700;color:var(--brand)">EduFlow OS</div>
+    <div style="font-size:11px;color:var(--text-muted)">Phase 2 — DEV</div>
+  </div>
+</nav>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="main">
+
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">EduFlow OS — Phase 2 shell</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--brand-light)"><svg width="20" height="20" fill="none" stroke="var(--brand)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div><div class="stat-val" id="statStudents">—</div><div class="stat-label">Total Students</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--warn-bg)"><svg width="20" height="20" fill="none" stroke="var(--warn)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div><div class="stat-val" id="statFees">—</div><div class="stat-label">Fees Pending</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--success-bg)"><svg width="20" height="20" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div></div><div class="stat-val" id="statAttendance">—</div><div class="stat-label">Avg Attendance</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Shell ready — next steps</div></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--text-secondary)">Login + sidebar working hai. Ab agle steps: Classes &amp; Batches page, phir Students page, phir Attendance aur Fees.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-students" class="page">
+    <div class="page-header"><div><div class="page-title">All Students</div><div class="page-sub">Students page — Step 3 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 3 🐢</div>
+  </div>
+
+  <div id="page-attendance" class="page">
+    <div class="page-header"><div><div class="page-title">Attendance</div><div class="page-sub">Attendance page — Step 4 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 4 🐢</div>
+  </div>
+
+  <div id="page-fees" class="page">
+    <div class="page-header"><div><div class="page-title">Fee Management</div><div class="page-sub">Fees page — Step 5 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 5 🐢</div>
+  </sup>
+  </div>
+
+  <div id="page-classes" class="page">
+    <div class="page-header"><div><div class="page-title">Classes &amp; Batches</div><div class="page-sub">Classes page — Step 2 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 2 🐢</div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
