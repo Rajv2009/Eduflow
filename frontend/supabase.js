@@ -1,18 +1,19 @@
 // EduFlow OS frontend: Supabase client + startup self-check
-// Load order in index.html: config.js -> supabase-js CDN -> supabase.js -> app.js
-// Only SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are used. Never a service_role key in the browser.
-// Key formats accepted (both are safe publishable keys):
-//   - New: sb_publishable_...  (Supabase's newer publishable key format)
-//   - Legacy: eyJhbGciOi...    (classic anon JWT, still valid on older projects)
+// Load order in index.html: supabase-js CDN (pinned) FIRST -> config.js -> supabase.js -> app.js
+// IMPORTANT: the client variable is named `sb`, NOT `supabase`.
+// A top-level `var supabase` in a classic script would overwrite the CDN's
+// window.supabase library namespace and break everything (createClient would vanish).
+// Keys: only SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY (anon/publishable) in the browser.
+// Never a service_role/secret key here.
 
-var supabase = null; // null means client could not be created; app.js guards against this
-var SUPABASE_INIT_ERROR = "";
+var sb = null; // null = client could not be created; app.js guards against this
+var SB_INIT_ERROR = "";
 
 (function initSupabase() {
   "use strict";
 
   function bootFail(msg) {
-    SUPABASE_INIT_ERROR = msg;
+    SB_INIT_ERROR = msg;
     var box = document.getElementById("bootStatus");
     if (box) {
       box.textContent = msg;
@@ -29,34 +30,31 @@ var SUPABASE_INIT_ERROR = "";
     return false;
   }
 
-  // 1) config.js loaded with values?
+  // (a) Library missing? (CDN namespace check only — never overwritten now)
+  if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    bootFail("Setup error (a): Supabase library (CDN) load nahi hui. Internet/network block check karo, ya page reload karo.");
+    return;
+  }
+
+  // (b) URL or key empty/missing?
   if (typeof SUPABASE_URL === "undefined" || typeof SUPABASE_PUBLISHABLE_KEY === "undefined") {
-    bootFail("Setup error: config.js load nahi hui ya values missing hain. File save hui? Reload karo.");
+    bootFail("Setup error (b): config.js load nahi hui ya SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY missing hain. File save hui? Reload karo.");
     return;
   }
-
-  // 2) URL format valid?
   if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(SUPABASE_URL)) {
-    bootFail("Setup error: SUPABASE_URL placeholder/galat hai. Real URL bharo: https://xxxxx.supabase.co — save + reload.");
+    bootFail("Setup error (b): SUPABASE_URL khali/galat hai. Real URL bharo (https://xxxxx.supabase.co) — save + reload.");
     return;
   }
-
-  // 3) Key format valid?
   if (!isValidKey(SUPABASE_PUBLISHABLE_KEY)) {
-    bootFail("Setup error: SUPABASE_PUBLISHABLE_KEY adhoori/galat hai. Supabase dashboard se poori key copy karo (sb_publishable_... ya eyJ... se shuru) — save + reload.");
+    bootFail("Setup error (b): SUPABASE_PUBLISHABLE_KEY khali/adhoori hai. Poori key paste karo (sb_publishable_... ya eyJ... se shuru) — save + reload.");
     return;
   }
 
-  // 4) CDN library loaded?
-  if (!window.supabase || !window.supabase.createClient) {
-    bootFail("Setup error: Supabase library (CDN) load nahi hui. Internet check karo ya page dobara reload karo.");
-    return;
-  }
-
-  // All checks passed — create the client
+  // (c) createClient threw?
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   } catch (e) {
-    bootFail("Setup error: Supabase client create nahi hua. Config values dobara check karo — save + reload.");
+    var detail = (e && e.message) ? String(e.message) : String(e);
+    bootFail("Setup error (c): createClient fail hua — " + detail + " | Config values dobara check karo — save + reload.");
   }
 })();
