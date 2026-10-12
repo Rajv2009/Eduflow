@@ -5,6 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EduFlow OS — Coaching Management</title>
 <link rel="stylesheet" href="styles.css">
+<style>
+/* Step 2: Classes & Batches page styles */
+.classes-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.toggle-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toggle-item{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-secondary);font-weight:600}
+.classes-list{display:flex;flex-direction:column;gap:12px}
+.class-card .card-header{padding:14px 16px}
+.class-title-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.class-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.class-actions,.batch-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.batch-list{display:flex;flex-direction:column;gap:10px}
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.batch-card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff}
+.batch-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.batch-meta{font-size:12px;color:var(--text-secondary);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+.batch-actions{margin-top:10px}
+.section-sub{font-size:12px;color:var(--text-secondary);margin-bottom:8px}
+@media(max-width:640px){
+  .class-actions .btn,.batch-actions .btn,.classes-toolbar .btn{width:100%;justify-content:center}
+  .toggle-row{width:100%}
+  .batch-grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 
@@ -166,8 +189,32 @@
   </div>
 
   <div id="page-classes" class="page">
-    <div class="page-header"><div><div class="page-title">Classes &amp; Batches</div><div class="page-sub">Classes page — Step 2 mein aayega</div></div></div>
-    <div class="empty-state">Coming in Step 2 🐢</div>
+    <div class="page-header">
+      <div>
+        <div class="page-title">Classes &amp; Batches</div>
+        <div class="page-sub">Add, rename, archive, restore. Delete kabhi nahi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="classes-toolbar">
+          <div class="toggle-row">
+            <label class="toggle-item" for="toggleShowArchivedClasses">
+              <input type="checkbox" id="toggleShowArchivedClasses">
+              <span>Show archived classes</span>
+            </label>
+            <label class="toggle-item" for="toggleShowArchivedBatches">
+              <input type="checkbox" id="toggleShowArchivedBatches">
+              <span>Show archived batches</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" id="addClassBtn" type="button">Add Class</button>
+        </div>
+
+        <div id="classesList" class="classes-list"></div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -175,11 +222,71 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Load order: 1) supabase-js CDN (pinned exact version) 2) config 3) supabase.js 4) app.js -->
+<!-- Class modal -->
+<div class="modal-overlay" id="classModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="classModalTitle">Add Class</div>
+      <button class="modal-close" id="closeClassModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="classForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="classNameInput">Class name</label>
+          <input id="classNameInput" type="text" maxlength="100" required>
+        </div>
+        <div id="classFormError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelClassBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveClassBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Batch modal -->
+<div class="modal-overlay" id="batchModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="batchModalTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="batchModalTitle">Add Batch</div>
+        <div id="batchModalClassName" style="font-size:12px;color:var(--text-secondary);margin-top:4px"></div>
+      </div>
+      <button class="modal-close" id="closeBatchModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="batchForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="batchNameInput">Batch name</label>
+          <input id="batchNameInput" type="text" maxlength="120" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="batchDefaultFeeInput">Default fee</label>
+            <input id="batchDefaultFeeInput" type="number" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="batchTimingNoteInput">Timing note</label>
+            <input id="batchTimingNoteInput" type="text" maxlength="120" placeholder="Mon-Sat 7AM-8AM">
+          </div>
+        </div>
+        <div id="batchFormError" class="login-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelBatchBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBatchBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Load order: 1) supabase-js CDN (pinned exact version) 2) config 3) supabase.js 4) app.js 5) classes.js -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"><\/script>')}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
 <script src="app.js"></script>
+<script src="classes.js"></script>
 </body>
 </html>
