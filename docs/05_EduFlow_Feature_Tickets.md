@@ -124,6 +124,8 @@ Scope: a separate "Results" section. One test = one subject (batch, subject, dat
 | T-709 | Student report: marks per test, subject averages, weak/strong subjects | Values always calculated live from marks, never stored | P1 |
 | T-710 | Student report mobile view | Readable on 360px phone | P1 |
 
+Note: Epic 7 is planning only. Build it only after the MVP is done and the teacher confirms.
+
 ## Definition of Done (all tickets)
 
-Works on dev; acceptance criteria shown to pass; no secrets in code; no hard delete added; loading/error states present; change committed to Epic 7 (Results) planning documented, build only after MVP and teacher confirmation.
+Works on dev; acceptance criteria shown to pass; no secrets in code; no hard delete added; loading/error states present; change committed to Git with migration files for any database change.
