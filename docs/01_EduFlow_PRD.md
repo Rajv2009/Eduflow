@@ -1,6 +1,6 @@
 # EduFlow OS: Product Requirements Document (PRD)
 
-Version 1.1 (MVP, single client). Status: draft for build.
+Version 1.2 (MVP, single client). Status: draft for build.
 
 ## 1. Overview
 
@@ -17,13 +17,13 @@ EduFlow OS is a lightweight web dashboard plus automation engine for a local Ind
 
 Goals (MVP)
 
-1. Teacher manages his own classes, batches (with subjects) and students without developer help.
+1. Teacher manages his own classes, batches and students without developer help. A batch is just a name, a class, a default fee and a timing note.
 2. Fee tracking per student that can never show a wrong "Paid" status.
 3. One-click and automatic WhatsApp fee reminders in the teacher's own wording.
 4. Batch-wise attendance with WhatsApp absent alerts to parents.
 5. Client data is never lost or reset by a small error.
 
-Non-goals (MVP): parent/student login or app, online fee payment gateway, exams/marks, timetable, multi-institute SaaS billing, voice calls to parents.
+Non-goals (MVP): parent/student login or app, online fee payment gateway, timetable, multi-institute SaaS billing, voice calls to parents. Exams/marks are NOT in the MVP — they are planned as the separate Results section in a later phase (see M8).
 
 ## 4. Users
 
@@ -35,17 +35,17 @@ Non-goals (MVP): parent/student login or app, online fee payment gateway, exams/
 
 ## 5. Client structure (domain model)
 
-Classes (8th, 9th, 10th) contain Batches. Each batch has its own set of subjects chosen by the client (e.g. "10th All Subjects": 6 subjects, "10th Normal": 3 subjects). Students join batches through enrollments. Fees and attendance belong to the enrollment.
+Classes (8th, 9th, 10th) contain Batches. A batch is simple: a name, its class, a default fee and a timing note (e.g. "10th - Morning", 8th class, Rs 2000, "Mon-Sat 7-8 AM"). Subjects are out of scope — batches do not have subject lists or subject ticking. Students join batches through enrollments. Fees and attendance belong to the enrollment.
 
 Students are always shown in separate sections per class (8th, 9th, 10th), with batches inside each class section; they are never mixed across classes. A student's class always comes from the batch of their active enrollment, never from a stored field on the student. When a student is promoted, the old enrollment is ended (left_on) and a new enrollment is created in the new class's batch; history is kept.
 
 ## 6. Scope by module
 
-### M1 Classes, batches, subjects
+### M1 Classes and batches
 
 - FR-1.1 Add, rename, archive, restore a class.
-- FR-1.2 Add, rename, archive, restore a batch inside a class, with default fee.
-- FR-1.3 Create subjects and tick which subjects belong to each batch.
+- FR-1.2 Add, rename, archive, restore a batch inside a class, with default fee and timing note. Duplicate batch names inside the same class are rejected with a friendly error; nothing is ever deleted (only archived).
+- FR-1.3 Batches have no subject list. Subject management and per-batch subject ticking are dropped from the product entirely.
 
 ### M2 Students
 
@@ -81,7 +81,7 @@ Students are always shown in separate sections per class (8th, 9th, 10th), with 
 - FR-5.3 Attendance for a date can be corrected; changes are logged.
 - FR-5.4 A derived view (`v_attendance_summary`) computes per enrollment: total_days = distinct dates on which attendance was saved for that batch on or after the student's joined_on, present_days, and attendance_percent. It is calculated live and never stored. Days with no saved attendance and days before joining do not count.
 
-### M6 Leads and AI call (last stage)
+### M6 Leads and AI call (last stage of MVP roadmap)
 
 - FR-6.1 Add and track leads (name, phone, class interest, status).
 - FR-6.2 New lead triggers an instant AI voice call (VAPI + OpenAI); outcome saved to the lead and call log.
@@ -94,6 +94,16 @@ Students are always shown in separate sections per class (8th, 9th, 10th), with 
 - FR-7.4 Audit log.
 - FR-7.5 Keep-alive ping so the free database never pauses.
 
+### M8 Results / marks (LATER PHASE — do not build now)
+
+A separate "Results" section, planned after the MVP phases. Core model: one test = one subject.
+
+- FR-8.1 A test is created as: batch, subject (free text for this test), date, max marks. One test covers one subject.
+- FR-8.2 Marks entry, mode 1 (manual grid): a grid prefilled with the batch's active students; the teacher enters a number or "Absent" per student.
+- FR-8.3 Marks entry, mode 2 (Excel upload): download a template prefilled with student code and name; teacher fills marks as "45/50" or plain "45", "AB" for absent. Uploading the teacher's own existing Excel shows a preview with name matching; unmatched and duplicate names must be fixed manually by the teacher — the system never assigns marks to a guessed student.
+- FR-8.4 Saving a test's marks happens in ONE atomic database call. Marks above max marks are rejected. Corrections to saved marks are logged. Nothing is deleted.
+- FR-8.5 Student report: marks per test, per-subject averages, and weak/strong subjects — all calculated live from the marks, never stored.
+
 ## 7. Business rules
 
 1. Nothing is hard-deleted by the app. Remove means archive.
@@ -104,6 +114,7 @@ Students are always shown in separate sections per class (8th, 9th, 10th), with 
 6. A parent must have opted in before receiving messages (consent flag per student).
 7. A student's class is never stored on the student; it always comes from the batch of the active enrollment (promotion = end old enrollment, create new one).
 8. Attendance percentage is always calculated live from saved attendance, never stored.
+9. In the Results section, weak/strong subject classification is always calculated from stored marks, never stored.
 
 ## 8. Non-functional requirements
 
@@ -126,11 +137,12 @@ Students are always shown in separate sections per class (8th, 9th, 10th), with 
 3. Teacher's preferred wording and language (Hindi, English, Hinglish) for the first 2-3 templates.
 4. Meta Business Verification documents available for the institute?
 5. AI voice calls to Indian numbers need a telephony number and rules compliance; confirm cost before M6.
+6. Results (M8): confirm whether the teacher's existing Excel files have a fixed column layout, so the template and parser can match it.
 
 ## 11. Risks
 
-Meta template rejection or delay; Meta pricing per message; free-tier limits and Supabase pausing; n8n hosting downtime; parent consent and data-privacy compliance; telephony cost and rules for voice calls.
+Meta template rejection or delay; Meta pricing per message; free-tier limits and Supabase pausing; n8n hosting downtime; parent consent and data-privacy compliance; telephony cost and rules for voice calls; Results-phase Excel parsing risk (name variants like "Rahul K." vs "Rahul Kumar") — mitigated by requiring manual confirmation instead of guessing.
 
 ## 12. Release plan
 
-Phases 0-6 as in the Feature Ticket List. MVP = Phases 0-5. Phase 6 (leads and voice calls) is a stretch.
+Phases 0-6 as in the Feature Ticket List. MVP = Phases 0-5. Phase 6 (leads and voice calls) is a stretch. Phase 7 (Results section, M8) is planned after the MVP and must not be built before the teacher confirms.
