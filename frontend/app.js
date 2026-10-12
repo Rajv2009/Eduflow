@@ -1,9 +1,9 @@
 // EduFlow OS — app.js (Step 1: auth + shell navigation)
 // Rules: user data via textContent only; no sign-up; errors in plain Hinglish.
-// Auth check at startup uses supabase.auth.getUser() (verifies with server,
-// not just local storage) so an expired session never shows the app.
-// Guard: if the Supabase client failed to init (supabase.js self-check),
-// we never call supabase.auth.* and show a plain setup error instead.
+// IMPORTANT: the client is `sb` (created in supabase.js). We never reference a
+// variable named `supabase` — that name belongs to the CDN library namespace.
+// Startup auth check uses sb.auth.getUser() (server-verified, not local storage)
+// so an expired session never shows the app.
 
 (function () {
   "use strict";
@@ -57,7 +57,7 @@
   });
 
   // ---------- Guard: Supabase client missing? ----------
-  if (typeof supabase === "undefined" || !supabase || !supabase.auth) {
+  if (typeof sb === "undefined" || !sb || !sb.auth) {
     // supabase.js self-check already wrote a clear message into #bootStatus.
     // Disable login so the raw crash never reaches the user.
     const btn = $("loginBtn");
@@ -77,7 +77,7 @@
     btn.disabled = true;
     btn.textContent = "Logging in…";
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await sb.auth.signInWithPassword({
         email: $("loginEmail").value.trim(),
         password: $("loginPassword").value,
       });
@@ -94,13 +94,13 @@
 
   // ---------- Logout ----------
   $("logoutBtn").addEventListener("click", async () => {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     showLogin();
     showToast("Logout ho gaya. Bye!", "success");
   });
 
   // ---------- Session watcher ----------
-  supabase.auth.onAuthStateChange((event, session) => {
+  sb.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_IN" && session) showApp(session.user);
     if (event === "SIGNED_OUT") showLogin();
   });
@@ -108,7 +108,7 @@
   // ---------- Startup: verify session with server ----------
   (async function init() {
     try {
-      const { data } = await supabase.auth.getUser();
+      const { data } = await sb.auth.getUser();
       if (data && data.user) showApp(data.user);
       else showLogin();
     } catch {
