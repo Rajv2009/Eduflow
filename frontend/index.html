@@ -175,8 +175,9 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>')}</script>
+<!-- Load order: 1) supabase-js CDN (pinned exact version) 2) config 3) supabase.js 4) app.js -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"><\/script>')}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
 <script src="app.js"></script>
