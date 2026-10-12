@@ -1,8 +1,10 @@
 # EduFlow OS: Feature Ticket List
 
-Priority: P0 = must for MVP, P1 = important, P2 = later. Phases match the roadmap: 0 Accounts, 1 Database, 2 Dashboard core, 3 WhatsApp attendance, 4 Fee reminders and templates, 5 Hardening, 6 Leads and voice.
+Priority: P0 = must for MVP, P1 = important, P2 = later. Phases match the roadmap: 0 Accounts, 1 Database, 2 Dashboard core, 3 WhatsApp attendance, 4 Fee reminders and templates, 5 Hardening, 6 Leads and voice, 7 Results (later).
 
 Rule for every ticket: nothing is hard-deleted, and each ticket is done only when its acceptance criteria pass on the dev project.
+
+Scope note: subjects are dropped from the product. A batch is a name, its class, a default fee and a timing note. There is no subjects page, no per-batch subject ticking, and no migration 009 for subjects. Results (marks/tests) are a separate later phase (Epic 7) — do not build before the MVP is done.
 
 ## Epic 0: Setup (Phase 0)
 
@@ -18,7 +20,7 @@ Rule for every ticket: nothing is hard-deleted, and each ticket is done only whe
 
 | ID | Ticket | Acceptance criteria | Pri |
 | --- | --- | --- | --- |
-| T-101 | Core tables: classes, subjects, batches, batch_subjects, students, enrollments | Tables created via SQL migration files; foreign keys work | P0 |
+| T-101 | Core tables: classes, batches, students, enrollments (subjects tables exist in migration 001 but are unused and out of scope) | Tables created via SQL migration files; foreign keys work | P0 |
 | T-102 | payments, attendance, message_templates, reminder_settings, message_log, leads, call_log, audit_log tables | Created with constraints (amount > 0, unique attendance per enrollment/date, phone format) | P0 |
 | T-103 | `enrollment_fees` view (paid, remaining, status) | Pending/Partial/Paid shown correctly for test data | P0 |
 | T-104 | RPC `add_payment` with remaining check, receipt number, idempotency key | Overpayment, zero and duplicate key are rejected | P0 |
@@ -35,8 +37,8 @@ Rule for every ticket: nothing is hard-deleted, and each ticket is done only whe
 | --- | --- | --- | --- |
 | T-201 | Project structure: split prototype into index.html, css, js modules; config.js | App loads from a local server with no console errors | P0 |
 | T-202 | Staff login and auth guard | Wrong password rejected; page redirects to login when logged out | P0 |
-| T-203 | Classes page: add, rename, archive, restore | Changes persist after refresh; archived hidden unless toggle on | P0 |
-| T-204 | Batches: add/edit/archive with default fee and subject checkboxes | Subjects saved per batch; two batches in one class can differ | P0 |
+| T-203 | Classes: add, rename, archive, restore | Changes persist after refresh; archived hidden unless toggle on | P0 |
+| T-204 | Batches: add/edit/archive/restore with name, default fee, timing note | Batches list persists; duplicate name in same class shows a friendly error; two batches in one class can differ; no subject checkboxes; nothing deleted | P0 |
 | T-205 | Class then Batch dependent dropdown component | Batch list changes with class; used on all pages | P0 |
 | T-206 | Students page: sections per class (8th, 9th, 10th) with batches inside, never mixed | Class comes from active enrollment's batch (via v_students_overview); no cross-class mixed table | P0 |
 | T-206b | Students compact rows: name + student_code, fee badge, attendance % badge (warning below 75%), small actions menu | Parent name/number, enrollment date, fee structure, attendance summary and payment history only in the detail panel; mobile: row = card, detail = bottom sheet | P0 |
@@ -99,12 +101,29 @@ Rule for every ticket: nothing is hard-deleted, and each ticket is done only whe
 
 | ID | Ticket | Acceptance criteria | Pri |
 | --- | --- | --- | --- |
-| T-601 | Leads page dynamic (`leadsTable`, `addLeadModal`) | Add/track leads, status chips | P1 |
+| T-601 | Leads page dynamic (`leadsTable`, addLeadModal) | Add/track leads, status chips | P1 |
 | T-602 | Decide telephony number and cost for India outbound calls | Decision recorded with costs | P1 |
 | T-603 | WF-09: new lead triggers VAPI call | Call placed to own test number | P2 |
 | T-604 | Call result written back to lead and call_log | Outcome and summary visible in dashboard | P2 |
 | T-605 | Calling-hours guard and consent check | No calls outside allowed hours or without consent | P2 |
 
+## Epic 7: Results / marks (Phase 7, LATER — do not build now)
+
+Scope: a separate "Results" section. One test = one subject (batch, subject, date, max marks). Marks are saved in one atomic call, corrections are logged, nothing is deleted, and marks are never assigned to a guessed student.
+
+| ID | Ticket | Acceptance criteria | Pri |
+| --- | --- | --- | --- |
+| T-701 | Migration: tests and marks tables + RLS + no-delete triggers | One test row per (batch, subject, date, max marks); marks unique per (test, student); no delete path | P0 |
+| T-702 | Tests page: create a test (batch, subject, date, max marks) | Test listed under its batch; duplicate (batch+subject+date) rejected | P0 |
+| T-703 | Manual marks grid prefilled with the batch's active students | Enter number or Absent; unsaved-changes warning on exit | P0 |
+| T-704 | Excel template download prefilled with student code + name | File opens correctly in Excel; columns obvious | P0 |
+| T-705 | Excel upload parser: "45/50", plain "45", "AB" for absent | All three formats parse; garbage rows shown as errors, not saved | P0 |
+| T-706 | Upload preview with name matching; unmatched/duplicate names fixed manually | System never assigns marks to a guessed student; unresolved rows block saving | P0 |
+| T-707 | Atomic save of all marks in one database call | All-or-nothing; marks above max rejected; retry does not duplicate | P0 |
+| T-708 | Mark corrections logged (old value, new value, when) | Every correction visible in audit log | P0 |
+| T-709 | Student report: marks per test, subject averages, weak/strong subjects | Values always calculated live from marks, never stored | P1 |
+| T-710 | Student report mobile view | Readable on 360px phone | P1 |
+
 ## Definition of Done (all tickets)
 
-Works on dev; acceptance criteria shown to pass; no secrets in code; no hard delete added; loading/error states present; change committed to Git with migration files for any database change.
+Works on dev; acceptance criteria shown to pass; no secrets in code; no hard delete added; loading/error states present; change committed to Epic 7 (Results) planning documented, build only after MVP and teacher confirmation.
