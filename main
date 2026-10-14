@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow OS — Coaching Management</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Step 2: Classes & Batches page styles */
+.classes-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.toggle-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toggle-item{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-secondary);font-weight:600}
+.classes-list{display:flex;flex-direction:column;gap:12px}
+.class-card .card-header{padding:14px 16px}
+.class-title-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.class-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.class-actions,.batch-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.batch-list{display:flex;flex-direction:column;gap:10px}
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.batch-card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff}
+.batch-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.batch-meta{font-size:12px;color:var(--text-secondary);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+.batch-actions{margin-top:10px}
+.section-sub{font-size:12px;color:var(--text-secondary);margin-bottom:8px}
+@media(max-width:640px){
+  .class-actions .btn,.batch-actions .btn,.classes-toolbar .btn{width:100%;justify-content:center}
+  .toggle-row{width:100%}
+  .batch-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div id="loginScreen" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">EF</div>
+    </div>
+    <div class="login-title">Edu<span style="color:var(--brand)">Flow</span> OS</div>
+    <div class="login-sub">Coaching Management — Owner Login</div>
+    <div id="bootStatus" class="login-error" style="display:none"></div>
+    <form id="loginForm">
+      <div class="form-group" style="margin-bottom:14px">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required autocomplete="username">
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <button type="submit" class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════ APP (hidden until logged in) ══════════ -->
+<div id="app" style="display:none">
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">EF</div>
+    <div class="logo-text">Edu<span>Flow</span> OS</div>
+  </div>
+  <div class="topbar-center">
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search…" id="globalSearch" disabled>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip" id="userChip" title="Owner">
+      <div class="avatar" id="userAvatar">O</div>
+      <span class="user-name" id="userName">Owner</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="logoutBtn">Logout</button>
+  </div>
+</header>
+
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-page="dashboard" id="navDashboard">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Students</div>
+    <div class="nav-item" data-page="students" id="navStudents">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      All Students
+    </div>
+    <div class="nav-item" data-page="attendance" id="navAttendance">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Attendance
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Finance</div>
+    <div class="nav-item" data-page="fees" id="navFees">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Fee Management
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Classes</div>
+    <div class="nav-item" data-page="classes" id="navClasses">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      Classes &amp; Batches
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Coming soon</div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      AI Call Log
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      WhatsApp Messages
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Alerts &amp; Escalations
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Parent Updates
+      <span class="nav-soon">Soon</span>
+    </div>
+    <div class="nav-item disabled" data-soon="true">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Academic Performance
+      <span class="nav-soon">Soon</span>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div style="font-size:12px;font-weight:700;color:var(--brand)">EduFlow OS</div>
+    <div style="font-size:11px;color:var(--text-muted)">Phase 2 — DEV</div>
+  </div>
+</nav>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="main">
+
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">EduFlow OS — Phase 2 shell</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--brand-light)"><svg width="20" height="20" fill="none" stroke="var(--brand)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div><div class="stat-val" id="statStudents">—</div><div class="stat-label">Total Students</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--warn-bg)"><svg width="20" height="20" fill="none" stroke="var(--warn)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div><div class="stat-val" id="statFees">—</div><div class="stat-label">Fees Pending</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--success-bg)"><svg width="20" height="20" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div></div><div class="stat-val" id="statAttendance">—</div><div class="stat-label">Avg Attendance</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Shell ready — next steps</div></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--text-secondary)">Login + sidebar working hai. Ab agle steps: Classes &amp; Batches page, phir Students page, phir Attendance aur Fees.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-students" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">All Students</div>
+        <div class="page-sub">Prototype look + Step 3 features (add, view, edit, move, remove, archive)</div>
+      </div>
+      <div class="students-actions">
+        <label class="toggle-item" for="toggleShowArchivedStudents">
+          <input type="checkbox" id="toggleShowArchivedStudents">
+          <span>Show archived / left</span>
+        </label>
+        <button class="btn btn-primary" id="addStudentBtn" type="button">Add Student</button>
+      </div>
+    </div>
+    <div id="studentsContainer" class="students-container"></div>
+  </div>
+
+  <div id="page-attendance" class="page">
+    <div class="page-header"><div><div class="page-title">Attendance</div><div class="page-sub">Attendance page — Step 4 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 4 🐢</div>
+  </div>
+
+  <div id="page-fees" class="page">
+    <div class="page-header"><div><div class="page-title">Fee Management</div><div class="page-sub">Fees page — Step 5 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 5 🐢</div>
+  </div>
+
+  <div id="page-classes" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Classes &amp; Batches</div>
+        <div class="page-sub">Add, rename, archive, restore. Delete kabhi nahi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="classes-toolbar">
+          <div class="toggle-row">
+            <label class="toggle-item" for="toggleShowArchivedClasses">
+              <input type="checkbox" id="toggleShowArchivedClasses">
+              <span>Show archived classes</span>
+            </label>
+            <label class="toggle-item" for="toggleShowArchivedBatches">
+              <input type="checkbox" id="toggleShowArchivedBatches">
+              <span>Show archived batches</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" id="addClassBtn" type="button">Add Class</button>
+        </div>
+
+        <div id="classesList" class="classes-list"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Class modal -->
+<div class="modal-overlay" id="classModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="classModalTitle">Add Class</div>
+      <button class="modal-close" id="closeClassModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="classForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="classNameInput">Class name</label>
+          <input id="classNameInput" type="text" maxlength="100" required>
+        </div>
+        <div id="classFormError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelClassBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveClassBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Batch modal -->
+<div class="modal-overlay" id="batchModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="batchModalTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="batchModalTitle">Add Batch</div>
+        <div id="batchModalClassName" style="font-size:12px;color:var(--text-secondary);margin-top:4px"></div>
+      </div>
+      <button class="modal-close" id="closeBatchModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="batchForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="batchNameInput">Batch name</label>
+          <input id="batchNameInput" type="text" maxlength="120" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="batchDefaultFeeInput">Default fee</label>
+            <input id="batchDefaultFeeInput" type="number" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="batchTimingNoteInput">Timing note</label>
+            <input id="batchTimingNoteInput" type="text" maxlength="120" placeholder="Mon-Sat 7AM-8AM">
+          </div>
+        </div>
+        <div id="batchFormError" class="login-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelBatchBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBatchBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Student Add/Edit modal -->
+<div class="modal-overlay" id="studentModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="studentModalTitle">Add Student</div>
+      <button class="modal-close" id="closeStudentModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="studentForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="studentNameInput">Student name</label>
+          <input id="studentNameInput" type="text" maxlength="120" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="parentNameInput">Parent name</label>
+            <input id="parentNameInput" type="text" maxlength="120">
+          </div>
+          <div class="form-group">
+            <label for="parentPhoneInput">Parent phone</label>
+            <input id="parentPhoneInput" type="tel" maxlength="16" placeholder="9876543210 ya +91">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="classSelect">Class</label>
+            <select id="classSelect" required></select>
+          </div>
+          <div class="form-group">
+            <label for="batchSelect">Batch</label>
+            <select id="batchSelect" required></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="feeInput">Fee (total)</label>
+            <input id="feeInput" type="number" min="0" step="0.01" value="0">
+          </div>
+          <div class="form-group">
+            <label>Parent consent</label>
+            <label class="toggle-item" style="padding-top:6px">
+              <input type="checkbox" id="parentOptInInput"> <span>WhatsApp OK</span>
+            </label>
+          </div>
+        </div>
+        <div id="studentFormError" class="login-error" style="margin-top:6px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelStudentBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveStudentBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Payment modal -->
+<div class="modal-overlay" id="paymentModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="paymentModalTitle">Add Payment</div>
+      <button class="modal-close" id="closePaymentModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="paymentForm">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="paymentAmountInput">Amount</label>
+            <input id="paymentAmountInput" type="number" min="1" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="paymentModeSelect">Mode</label>
+            <select id="paymentModeSelect" required>
+              <option value="cash">Cash</option>
+              <option value="upi">UPI</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="paymentDateInput">Paid on</label>
+            <input id="paymentDateInput" type="date">
+          </div>
+          <div class="form-group">
+            <label for="paymentTxnRefInput">Txn / UPI Ref</label>
+            <input id="paymentTxnRefInput" type="text" maxlength="80">
+          </div>
+        </div>
+        <div id="paymentFormError" class="login-error" style="margin-top:6px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelPaymentBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="savePaymentBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Fee edit modal -->
+<div class="modal-overlay" id="feeModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="feeModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="feeModalTitle">Edit Fee</div>
+      <button class="modal-close" id="closeFeeModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="feeForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="feeEditInput">Fee total</label>
+          <input id="feeEditInput" type="number" min="0" step="0.01" required>
+        </div>
+        <div id="feeFormError" class="login-error" style="margin-top:6px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelFeeBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveFeeBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Student profile modal -->
+<div class="modal-overlay" id="profileModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle" style="width:min(900px,95vw)">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="profileModalTitle">Student Profile</div>
+        <div id="profileModalSub" class="profile-sub"></div>
+      </div>
+      <button class="modal-close" id="closeProfileModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body" id="profileBody">
+      <div class="profile-stats" id="profileStats"></div>
+
+      <div class="profile-block">
+        <div class="block-head">STUDENT DETAILS</div>
+        <div class="details-grid" id="profileStudentDetails"></div>
+        <div class="fee-card" id="profileFeeCard"></div>
+        <div class="details-grid" id="profileSubjects"></div>
+      </div>
+
+      <div class="profile-block">
+        <div class="block-head">PARENT INFO</div>
+        <div class="details-grid" id="profileParent"></div>
+      </div>
+
+      <div class="profile-block">
+        <div class="block-head">PAYMENT HISTORY</div>
+        <div id="paymentHistoryList" class="payment-history"></div>
+      </div>
+
+      <div class="profile-actions" id="profileActions"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button type="button" class="btn btn-secondary" id="closeProfileBtn">Close</button>
+      <button type="button" class="btn btn-secondary" disabled data-tip="WhatsApp baad mein" id="sendReportBtn">Send Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- Load order: 1) supabase-js CDN (pinned exact version) 2) config 3) supabase.js 4) app.js 5) classes.js 6) students.js -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"><\/script>')}</script>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
+<script src="classes.js"></script>
+<script src="students.js"></script>
+</body>
+</html>
