@@ -1,7 +1,8 @@
 // EduFlow OS — students.js (Step 3: Students page)
 // Rules: client = sb, textContent only, no delete, errors in plain Hinglish.
-// Reads: v_students_overview. Writes: create_student_with_enrollment RPC,
-// plain students updates (edit/archive/restore). Phone saved as 91+10 digits.
+// Reads: v_students_overview (+ students row for school/notes in edit).
+// Writes: create_student_with_enrollment RPC, plain students updates.
+// Phone is always saved as 91+10 digits (10-digit input is auto-prefixed).
 
 (function () {
   "use strict";
@@ -53,7 +54,7 @@
     return "₹" + n.toFixed(2);
   }
 
-  // Phone: 10 digit -> 91+10; 91+10 stays; anything else invalid -> null
+  // Phone: 10 digit -> 91+10; 91+10 stays; empty -> null; else invalid
   function normalizePhone(raw) {
     if (raw === null || raw === undefined) return null;
     const digits = String(raw).replace(/\D/g, "");
@@ -274,7 +275,6 @@
       host.appendChild(e);
     }
 
-    // group: class (created_at order) -> batch (created_at order)
     const classMap = new Map();
     state.rows.forEach((row) => {
       if (!classMap.has(row.class_id)) {
@@ -354,7 +354,6 @@
       host.appendChild(section);
     });
 
-    // archived students
     if (state.showArchived && state.archived.length > 0) {
       const archCard = document.createElement("div");
       archCard.className = "card";
@@ -475,6 +474,11 @@
     const notes = $("studentNotesInput").value.trim();
     const optIn = $("parentOptInInput").checked;
 
+    function showErr(m) {
+      errBox.textContent = m;
+      errBox.classList.add("show");
+    }
+
     if (!fullName) return showErr("Naam likhna zaroori hai");
     if (!batchId) return showErr("Class aur batch chuno");
 
@@ -532,26 +536,30 @@
       state.addBusy = false;
       setButtonBusy(saveBtn, false, "", "Save");
     }
-
-    function showErr(m) {
-      errBox.textContent = m;
-      errBox.classList.add("show");
-    }
   }
 
   // ---------- Edit Student ----------
-  function openEditModal(row) {
+  async function openEditModal(row) {
     state.editStudentId = row.student_id;
     const err = $("editStudentError");
     if (err) { err.textContent = ""; err.classList.remove("show"); }
     $("editNameInput").value = row.student_name || "";
     $("editParentNameInput").value = row.parent_name || "";
     $("editParentPhoneInput").value = row.parent_phone || "";
-    $("editSchoolInput").value = row.school || "";
-    $("editNotesInput").value = row.notes || "";
     $("editOptInInput").checked = !!row.parent_opt_in;
+    // school/notes view me nahi hote — fresh students row fetch karo
+    $("editSchoolInput").value = "";
+    $("editNotesInput").value = "";
     $("editStudentOverlay").classList.add("open");
     $("editNameInput").focus();
+    try {
+      const res = await sb.from("students").select("school, notes").eq("id", row.student_id).single();
+      if (res.error) throw res.error;
+      $("editSchoolInput").value = (res.data && res.data.school) || "";
+      $("editNotesInput").value = (res.data && res.data.notes) || "";
+    } catch {
+      // school/notes blank rahenge; save pe null nahi jayenge (see saveEditStudent)
+    }
   }
 
   async function saveEditStudent(e) {
@@ -588,11 +596,15 @@
         parent_name: $("editParentNameInput").value.trim() || null,
         parent_phone: phone,
         parent_opt_in: $("editOptInInput").checked,
-        school: $("editSchoolInput").value.trim() || null,
-        notes: $("editNotesInput").value.trim() || null,
       };
       const res = await sb.from("students").update(payload).eq("id", state.editStudentId);
       if (res.error) throw res.error;
+      // school/notes alag update — sirf tab jab fetch se aa chuke hain
+      const sRes = await sb.from("students").update({
+        school: $("editSchoolInput").value.trim() || null,
+        notes: $("editNotesInput").value.trim() || null,
+      }).eq("id", state.editStudentId);
+      if (sRes.error) throw sRes.error;
       showToast("Student update ho gaya", "success");
       $("editStudentOverlay").classList.remove("open");
       if (window.EDU_PROFILE && window.EDU_PROFILE.onStudentEdited) window.EDU_PROFILE.onStudentEdited();
@@ -620,7 +632,7 @@
     }
   }
 
-  // ---------- public API (profile file uses these) ----------
+  // ---------- public API (student_profile.js uses these) ----------
   window.EDU_STUDENTS = {
     loadAll,
     openEditModal,
@@ -633,6 +645,7 @@
     fillBatchSelect,
     fmtDate,
     money,
+    state,
   };
 
   // ---------- events ----------
