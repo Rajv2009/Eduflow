@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow OS — Coaching Management</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Step 2: Classes & Batches page styles */
+.classes-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.toggle-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toggle-item{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-secondary);font-weight:600}
+.classes-list{display:flex;flex-direction:column;gap:12px}
+.class-card .card-header{padding:14px 16px}
+.class-title-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.class-title{font-size:15px;font-weight:700;color:var(--text-primary)}
+.class-actions,.batch-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.batch-list{display:flex;flex-direction:column;gap:10px}
+.batch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.batch-card{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff}
+.batch-title{font-size:14px;font-weight:700;color:var(--text-primary)}
+.batch-meta{font-size:12px;color:var(--text-secondary);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+.batch-actions{margin-top:10px}
+.section-sub{font-size:12px;color:var(--text-secondary);margin-bottom:8px}
+@media(max-width:640px){
+  .class-actions .btn,.batch-actions .btn,.classes-toolbar .btn{width:100%;justify-content:center}
+  .toggle-row{width:100%}
+  .batch-grid{grid-template-columns:1fr}
+}
+/* Step 3: Students page */
+.students-list{display:flex;flex-direction:column;gap:14px}
+.class-section{border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+.class-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg);cursor:pointer;user-select:none}
+.class-head .chev{font-size:11px;color:var(--text-muted);transition:.2s}
+.class-section.collapsed .chev{transform:rotate(-90deg)}
+.class-section.collapsed .class-body{display:none}
+.class-body{padding:6px 14px 14px}
+.class-name{font-size:14px;font-weight:700;color:var(--text-primary)}
+.class-count{font-size:11.5px;color:var(--text-muted)}
+.batch-group{margin-top:12px}
+.batch-head{display:flex;align-items:center;gap:10px;padding:0 2px 6px;border-bottom:1px dashed var(--border);margin-bottom:8px;flex-wrap:wrap}
+.batch-name{font-size:12.5px;font-weight:700;color:var(--text-secondary)}
+.batch-count{font-size:11px;color:var(--text-muted)}
+.student-rows{display:flex;flex-direction:column;gap:8px}
+.student-row{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface);cursor:pointer;position:relative;transition:.15s;flex-wrap:wrap}
+.student-row:hover{border-color:var(--brand-mid)}
+.s-avatar{width:38px;height:38px;border-radius:50%;background:var(--brand-light);color:var(--brand);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s-name-block{flex:1;min-width:130px}
+.s-name{font-size:13.5px;font-weight:600;color:var(--text-primary)}
+.s-code{font-size:11px;color:var(--text-muted);margin-top:1px}
+.s-att{width:120px;flex-shrink:0}
+.s-att-top{display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+.att-bar{height:6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.att-fill{height:100%;background:var(--success)}
+.att-fill.low{background:var(--warn)}
+.att-fill.none{background:var(--border-dark)}
+.s-actions{display:flex;align-items:center;gap:6px}
+.s-menu{position:absolute;top:42px;right:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);z-index:30;min-width:180px;display:none;padding:4px 0}
+.s-menu.open{display:block}
+.s-menu-item{padding:9px 14px;font-size:12.5px;color:var(--text-primary);cursor:pointer}
+.s-menu-item:hover{background:var(--brand-light);color:var(--brand)}
+.s-menu-item.danger{color:var(--danger)}
+.s-menu-item.danger:hover{background:var(--danger-bg);color:var(--danger)}
+.archived-list{display:flex;flex-direction:column;gap:8px}
+.arch-card{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--bg);flex-wrap:wrap}
+.arch-card .a-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+.arch-card .a-meta{font-size:11.5px;color:var(--text-muted)}
+.arch-card .btn{margin-left:auto}
+/* Step 3: Profile modal */
+.profile-modal{width:min(660px,94vw)}
+.stat-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat-box{border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center}
+.stat-box-val{font-size:14px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-primary);word-break:break-word}
+.stat-box-val.ok{color:var(--success)}
+.stat-box-val.warn{color:var(--warn)}
+.stat-box-val.bad{color:var(--danger)}
+.stat-box-label{font-size:10px;color:var(--text-muted);margin-top:3px}
+.prof-block{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.prof-block-title{font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.prof-rows{display:flex;flex-direction:column;gap:7px}
+.prof-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;align-items:center}
+.prof-row .k{color:var(--text-secondary)}
+.prof-row .v{color:var(--text-primary);font-weight:600;text-align:right}
+.fee-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.fee-box{border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center;position:relative}
+.fee-box .fv{font-size:14px;font-weight:700;color:var(--text-primary)}
+.fee-box .fl{font-size:10.5px;color:var(--text-muted);margin-top:2px}
+.fee-edit-btn{position:absolute;top:2px;right:6px;border:none;background:none;cursor:pointer;color:var(--brand);font-size:14px;padding:2px 4px}
+.pay-list{display:flex;flex-direction:column;gap:8px}
+.pay-item{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px}
+.pay-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pay-amt{font-weight:700}
+.pay-meta{color:var(--text-secondary);font-size:11.5px}
+.pay-note{font-size:11.5px;color:var(--text-secondary);margin-top:4px;font-style:italic}
+.pay-actions{display:flex;gap:6px;margin-left:auto}
+.pay-item.cancelled,.pay-item.corrected{opacity:.6;background:var(--bg)}
+.pay-item.cancelled{border-style:dashed}
+.prof-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+/* Batch page */
+.bp-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.bp-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.bp-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.bp-stat .v{font-size:18px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-primary)}
+.bp-stat .l{font-size:11.5px;color:var(--text-secondary);margin-top:2px}
+/* Mobile hamburger drawer */
+.hamburger-btn{display:none;width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text-secondary);margin-right:10px}
+.sidebar-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:49;display:none}
+.sidebar-backdrop.show{display:block}
+@media(max-width:900px){
+  .hamburger-btn{display:flex}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+}
+/* Coming soon collapsed group */
+.soon-group-head{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--text-muted);cursor:pointer;font-size:13.5px;font-weight:600;user-select:none}
+.soon-group-head:hover{background:var(--bg)}
+.soon-group-head .chev{font-size:10px;transition:.2s}
+.soon-group-list{display:none}
+.soon-group-list.open{display:block}
+.soon-group-list .nav-item{margin-bottom:2px}
+@media(max-width:640px){
+  .s-att{width:100%;order:6}
+  .s-actions{margin-left:auto}
+  .arch-card .btn{margin-left:0;width:100%;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div id="loginScreen" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">EF</div>
+    </div>
+    <div class="login-title">Edu<span style="color:var(--brand)">Flow</span> OS</div>
+    <div class="login-sub">Coaching Management — Owner Login</div>
+    <div id="bootStatus" class="login-error" style="display:none"></div>
+    <form id="loginForm">
+      <div class="form-group" style="margin-bottom:14px">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required autocomplete="username">
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <button type="submit" class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center">Login</button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════ APP (hidden until logged in) ══════════ -->
+<div id="app" style="display:none">
+
+<header class="topbar">
+  <button class="hamburger-btn" id="hamburgerBtn" type="button" aria-label="Menu">☰</button>
+  <div class="logo">
+    <div class="logo-icon">EF</div>
+    <div class="logo-text">Edu<span>Flow</span> OS</div>
+  </div>
+  <div class="topbar-center">
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search…" id="globalSearch" disabled>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip" id="userChip" title="Owner">
+      <div class="avatar" id="userAvatar">O</div>
+      <span class="user-name" id="userName">Owner</span>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="logoutBtn">Logout</button>
+  </div>
+</header>
+
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" data-page="dashboard" id="navDashboard">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Classes</div>
+    <div class="nav-item" data-page="classes" id="navClasses">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      Classes &amp; Batches
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Students</div>
+    <div class="nav-item" data-page="students" id="navStudents">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      All Students
+    </div>
+    <div class="nav-item" data-page="attendance" id="navAttendance">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Attendance
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Finance</div>
+    <div class="nav-item" data-page="fees" id="navFees">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Fee Management
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Baaki</div>
+    <div class="soon-group-head" id="soonGroupHead">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Aane wale features
+      <span class="chev" id="soonGroupChev">▸</span>
+    </div>
+    <div class="soon-group-list" id="soonGroupList">
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        WhatsApp Messages
+      </div>
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Alerts &amp; Escalations
+      </div>
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Parent Updates
+      </div>
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Academic Performance
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div style="font-size:12px;font-weight:700;color:var(--brand)">EduFlow OS</div>
+    <div style="font-size:11px;color:var(--text-muted)">Phase 2 — DEV</div>
+  </div>
+</nav>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<div class="main">
+
+  <div id="page-dashboard" class="page active">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">EduFlow OS — Phase 2 shell</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--brand-light)"><svg width="20" height="20" fill="none" stroke="var(--brand)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div><div class="stat-val" id="statStudents">—</div><div class="stat-label">Total Students</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--warn-bg)"><svg width="20" height="20" fill="none" stroke="var(--warn)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div><div class="stat-val" id="statFees">—</div><div class="stat-label">Fees Pending</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--success-bg)"><svg width="20" height="20" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div></div><div class="stat-val" id="statAttendance">—</div><div class="stat-label">Avg Attendance</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Shell ready — next steps</div></div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--text-secondary)">Login + sidebar working hai. Agle steps: Attendance page, phir Fees page.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-classes" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Classes &amp; Batches</div>
+        <div class="page-sub">Add, rename, archive, restore. Delete kabhi nahi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="classes-toolbar">
+          <div class="toggle-row">
+            <label class="toggle-item" for="toggleShowArchivedClasses">
+              <input type="checkbox" id="toggleShowArchivedClasses">
+              <span>Show archived classes</span>
+            </label>
+            <label class="toggle-item" for="toggleShowArchivedBatches">
+              <input type="checkbox" id="toggleShowArchivedBatches">
+              <span>Show archived batches</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" id="addClassBtn" type="button">Add Class</button>
+        </div>
+
+        <div id="classesList" class="classes-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-batch" class="page">
+    <div class="bp-toolbar">
+      <button class="btn btn-secondary btn-sm" id="bpBackBtn" type="button">← Back</button>
+      <button class="btn btn-primary btn-sm" id="bpAddStudentBtn" type="button">Add student</button>
+      <button class="btn btn-secondary btn-sm" id="bpTakeAttBtn" type="button" disabled data-tip="Attendance Step 4 mein aayega">Take attendance</button>
+    </div>
+    <div class="page-header" style="margin-bottom:16px">
+      <div>
+        <div class="page-title" id="bpTitle">Batch</div>
+        <div class="page-sub" id="bpSub"></div>
+      </div>
+    </div>
+    <div class="bp-summary">
+      <div class="bp-stat"><div class="v" id="bpStudentCount">—</div><div class="l">Students</div></div>
+      <div class="bp-stat"><div class="v" id="bpPendingFees">—</div><div class="l">Total pending fees</div></div>
+      <div class="bp-stat"><div class="v" id="bpAvgAttendance">—</div><div class="l">Avg attendance</div></div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div id="bpStudentRows" class="student-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-students" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">All Students</div>
+        <div class="page-sub">Class ke andar batch, batch ke andar students. Delete kabhi nahi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="classes-toolbar">
+          <div class="toggle-row">
+            <label class="toggle-item" for="toggleShowArchivedStudents">
+              <input type="checkbox" id="toggleShowArchivedStudents">
+              <span>Show archived students</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" id="addStudentBtn" type="button">Add Student</button>
+        </div>
+        <div id="studentsList" class="students-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-attendance" class="page">
+    <div class="page-header"><div><div class="page-title">Attendance</div><div class="page-sub">Attendance page — Step 4 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 4 🐢</div>
+  </div>
+
+  <div id="page-fees" class="page">
+    <div class="page-header"><div><div class="page-title">Fee Management</div><div class="page-sub">Fees page — Step 5 mein aayega</div></div></div>
+    <div class="empty-state">Coming in Step 5 🐢</div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Class modal -->
+<div class="modal-overlay" id="classModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="classModalTitle">Add Class</div>
+      <button class="modal-close" id="closeClassModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="classForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="classNameInput">Class name</label>
+          <input id="classNameInput" type="text" maxlength="100" required>
+        </div>
+        <div id="classFormError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelClassBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveClassBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Batch modal -->
+<div class="modal-overlay" id="batchModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="batchModalTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="batchModalTitle">Add Batch</div>
+        <div id="batchModalClassName" style="font-size:12px;color:var(--text-secondary);margin-top:4px"></div>
+      </div>
+      <button class="modal-close" id="closeBatchModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="batchForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="batchNameInput">Batch name</label>
+          <input id="batchNameInput" type="text" maxlength="120" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="batchDefaultFeeInput">Default fee</label>
+            <input id="batchDefaultFeeInput" type="number" min="0" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label for="batchTimingNoteInput">Timing note</label>
+            <input id="batchTimingNoteInput" type="text" maxlength="120" placeholder="Mon-Sat 7AM-8AM">
+          </div>
+        </div>
+        <div id="batchFormError" class="login-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelBatchBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveBatchBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Student modal -->
+<div class="modal-overlay" id="studentModalOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="studentModalTitle">Add Student</div>
+      <button class="modal-close" id="closeStudentModalBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="studentForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="studentNameInput">Student full name</label>
+          <input id="studentNameInput" type="text" maxlength="120" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="studentClassSelect">Class</label>
+            <select id="studentClassSelect" required></select>
+          </div>
+          <div class="form-group">
+            <label for="studentBatchSelect">Batch</label>
+            <select id="studentBatchSelect" required></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="studentFeeInput">Total fee (₹)</label>
+          <input id="studentFeeInput" type="number" min="0" step="0.01" placeholder="Batch default fee lagega">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="parentNameInput">Parent name</label>
+            <input id="parentNameInput" type="text" maxlength="120">
+          </div>
+          <div class="form-group">
+            <label for="parentPhoneInput">Parent WhatsApp number</label>
+            <input id="parentPhoneInput" type="tel" maxlength="12" placeholder="10 digit (91 khud lagega)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="studentSchoolInput">School</label>
+            <input id="studentSchoolInput" type="text" maxlength="120">
+          </div>
+          <div class="form-group">
+            <label for="studentNotesInput">Notes</label>
+            <input id="studentNotesInput" type="text" maxlength="300">
+          </div>
+        </div>
+        <label class="toggle-item" for="parentOptInInput" style="margin-top:4px">
+          <input type="checkbox" id="parentOptInInput">
+          <span>Parent ne WhatsApp messages ke liye haan (consent) di hai</span>
+        </label>
+        <div id="studentFormError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelStudentBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveStudentBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Student Profile modal (prototype look) -->
+<div class="modal-overlay" id="profileModalOverlay" aria-hidden="true">
+  <div class="modal profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="profileTitle">Student</div>
+        <div id="profileSub" style="font-size:12px;color:var(--text-secondary);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" id="closeProfileBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="stat-boxes">
+        <div class="stat-box"><div class="stat-box-val" id="pfAttPercent">—</div><div class="stat-box-label">Attendance %</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="pfFeeStatus">—</div><div class="stat-box-label" id="pfFeeStatusLabel">Fee Status</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="pfDays">—</div><div class="stat-box-label">Days Present / Total</div></div>
+      </div>
+
+      <div class="prof-block">
+        <div class="prof-block-title">Student Details</div>
+        <div class="prof-rows">
+          <div class="prof-row"><span class="k">Class</span><span class="v" id="pfClass">—</span></div>
+          <div class="prof-row"><span class="k">Batch</span><span class="v" id="pfBatch">—</span></div>
+          <div class="prof-row"><span class="k">Enrollment date</span><span class="v" id="pfJoined">—</span></div>
+          <div class="prof-row"><span class="k">Strong subjects</span><span class="v">—</span></div>
+          <div class="prof-row"><span class="k">Weak subjects</span><span class="v">—</span></div>
+        </div>
+        <div class="fee-boxes">
+          <div class="fee-box"><button class="fee-edit-btn" id="editFeeBtn" type="button" title="Edit total fee" data-tip="Fee edit karo">✎</button><div class="fv" id="pfFeeTotal">—</div><div class="fl">Total Fee</div></div>
+          <div class="fee-box"><div class="fv" id="pfPaid">—</div><div class="fl">Paid</div></div>
+          <div class="fee-box"><div class="fv" id="pfRemaining">—</div><div class="fl">Remaining</div></div>
+        </div>
+      </div>
+
+      <div class="prof-block">
+        <div class="prof-block-title">Parent Info</div>
+        <div class="prof-rows">
+          <div class="prof-row"><span class="k">Parent name</span><span class="v" id="pfParentName">—</span></div>
+          <div class="prof-row"><span class="k">Phone</span><span class="v" id="pfParentPhone">—</span></div>
+          <div class="prof-row"><span class="k">WhatsApp consent</span><span class="v" id="pfOptIn">—</span></div>
+        </div>
+      </div>
+
+      <div class="prof-block">
+        <div class="prof-block-title">Payment History</div>
+        <div id="pfPayList" class="pay-list"></div>
+      </div>
+
+      <div class="prof-actions">
+        <button class="btn btn-primary btn-sm" id="pfAddPayBtn" type="button">Add payment</button>
+        <button class="btn btn-secondary btn-sm" id="pfEditBtn" type="button">Edit</button>
+        <button class="btn btn-secondary btn-sm" id="pfMoveBtn" type="button">Move</button>
+        <button class="btn btn-danger btn-sm" id="pfRemoveBtn" type="button">Remove from batch</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" id="closeProfileFooterBtn">Close</button>
+      <button type="button" class="btn btn-primary" id="sendReportBtn" disabled data-tip="WhatsApp baad mein">Send Report</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Student modal -->
+<div class="modal-overlay" id="editStudentOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editStudentTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="editStudentTitle">Edit Student</div>
+      <button class="modal-close" id="closeEditStudentBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="editStudentForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="editNameInput">Student full name</label>
+          <input id="editNameInput" type="text" maxlength="120" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editParentNameInput">Parent name</label>
+            <input id="editParentNameInput" type="text" maxlength="120">
+          </div>
+          <div class="form-group">
+            <label for="editParentPhoneInput">Parent WhatsApp number</label>
+            <input id="editParentPhoneInput" type="tel" maxlength="12" placeholder="10 digit (91 khud lagega)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editSchoolInput">School</label>
+            <input id="editSchoolInput" type="text" maxlength="120">
+          </div>
+          <div class="form-group">
+            <label for="editNotesInput">Notes</label>
+            <input id="editNotesInput" type="text" maxlength="300">
+          </div>
+        </div>
+        <label class="toggle-item" for="editOptInInput">
+          <input type="checkbox" id="editOptInInput">
+          <span>Parent ne WhatsApp consent di hai</span>
+        </label>
+        <div id="editStudentError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelEditStudentBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveEditStudentBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Move Student modal -->
+<div class="modal-overlay" id="moveStudentOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="moveStudentTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="moveStudentTitle">Move Student</div>
+        <div id="moveStudentSub" style="font-size:12px;color:var(--text-secondary);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" id="closeMoveStudentBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="moveStudentForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="moveClassSelect">New class</label>
+          <select id="moveClassSelect" required></select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="moveBatchSelect">New batch</label>
+          <select id="moveBatchSelect" required></select>
+        </div>
+        <div class="form-group">
+          <label for="moveFeeInput">Total fee (₹) — khali chhodo to naye batch ka default lagega</label>
+          <input id="moveFeeInput" type="number" min="0" step="0.01">
+        </div>
+        <div id="moveStudentError" class="login-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelMoveStudentBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveMoveStudentBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Fee modal -->
+<div class="modal-overlay" id="feeEditOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="feeEditTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="feeEditTitle">Edit Total Fee</div>
+      <button class="modal-close" id="closeFeeEditBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="feeEditForm">
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:12px">
+          <label for="feeEditInput">Total fee (₹)</label>
+          <input id="feeEditInput" type="number" min="0" step="0.01" required>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary)" id="feeEditHint">Paid amount se kam nahi rakh sakte.</div>
+        <div id="feeEditError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelFeeEditBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveFeeEditBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Payment modal (2 views: form -> confirm) -->
+<div class="modal-overlay" id="addPayOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addPayTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="addPayTitle">Add Payment</div>
+      <button class="modal-close" id="closeAddPayBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="addPayFormView">
+        <form id="addPayForm">
+          <div class="form-group" style="margin-bottom:12px">
+            <label for="addPayAmount">Amount (₹)</label>
+            <input id="addPayAmount" type="number" min="1" step="0.01" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addPayDate">Date (aaj se aage nahi)</label>
+              <input id="addPayDate" type="date" required>
+            </div>
+            <div class="form-group">
+              <label for="addPayMode">Mode</label>
+              <select id="addPayMode">
+                <option value="cash">Cash</option>
+                <option value="upi">UPI</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px" id="addPayTxnWrap">
+            <label for="addPayTxnRef">UPI reference (optional)</label>
+            <input id="addPayTxnRef" type="text" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="addPayNote">Note (optional)</label>
+            <input id="addPayNote" type="text" maxlength="200">
+          </div>
+          <div id="addPayError" class="login-error" style="margin-top:12px"></div>
+          <div class="modal-footer" style="padding:16px 0 0;border:none">
+            <button type="button" class="btn btn-secondary" id="cancelAddPayBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="confirmPayBtn">Confirm</button>
+          </div>
+        </form>
+      </div>
+      <div id="addPayConfirmView" style="display:none">
+        <div class="prof-block">
+          <div class="prof-block-title">Confirm karo</div>
+          <div class="prof-rows">
+            <div class="prof-row"><span class="k">Student</span><span class="v" id="apcName">—</span></div>
+            <div class="prof-row"><span class="k">Class / Batch</span><span class="v" id="apcClassBatch">—</span></div>
+            <div class="prof-row"><span class="k">Parent</span><span class="v" id="apcParent">—</span></div>
+            <div class="prof-row"><span class="k">Phone (last 4)</span><span class="v" id="apcPhone">—</span></div>
+            <div class="prof-row"><span class="k">Amount</span><span class="v" id="apcAmount">—</span></div>
+            <div class="prof-row"><span class="k">Iske baad remaining</span><span class="v" id="apcRemaining">—</span></div>
+          </div>
+        </div>
+        <div id="addPayConfirmError" class="login-error"></div>
+        <div class="modal-footer" style="padding:16px 0 0;border:none">
+          <button type="button" class="btn btn-secondary" id="backAddPayBtn">← Back</button>
+          <button type="button" class="btn btn-primary" id="savePaymentBtn">Save Payment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Payment modal -->
+<div class="modal-overlay" id="editPayOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editPayTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="editPayTitle">Edit Payment</div>
+        <div id="editPaySub" style="font-size:12px;color:var(--text-secondary);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" id="closeEditPayBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="editPayForm">
+      <div class="modal-body">
+        <div style="font-size:12.5px;color:var(--text-secondary);background:var(--warn-bg);border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+          Amount badalne pe purani entry history me <b>"Corrected"</b> bankar dikhegi — kabhi delete nahi hoti.
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editPayDate">Date</label>
+            <input id="editPayDate" type="date" required>
+          </div>
+          <div class="form-group">
+            <label for="editPayAmount">Amount (₹)</label>
+            <input id="editPayAmount" type="number" min="1" step="0.01" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editPayNote">Note</label>
+          <input id="editPayNote" type="text" maxlength="200">
+        </div>
+        <div id="editPayError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelEditPayBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveEditPayBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cancel Payment modal -->
+<div class="modal-overlay" id="cancelPayOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cancelPayTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="cancelPayTitle">Cancel Payment</div>
+        <div id="cancelPaySub" style="font-size:12px;color:var(--text-secondary);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" id="closeCancelPayBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="cancelPayForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="cancelPayReasonInput">Reason (kam se kam 3 letters)</label>
+          <input id="cancelPayReasonInput" type="text" maxlength="200" required>
+        </div>
+        <div id="cancelPayError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelCancelPayBtn">Close</button>
+        <button type="submit" class="btn btn-danger" id="saveCancelPayBtn">Cancel Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Load order: 1) supabase-js CDN (unpkg primary, jsdelivr fallback — India-safe) 2) config 3) supabase.js 4) app.js 5) classes.js 6) students.js 7) student_profile.js 8) batch_page.js 9) payments.js -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script>if(!window.supabase){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"><\\/script>')}</script>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+<script src="app.js"></script>
+<script src="classes.js"></script>
+<script src="students.js"></script>
+<script src="student_profile.js"></script>
+<script src="batch_page.js"></script>
+<script src="payments.js"></script>
+</body>
+</html>

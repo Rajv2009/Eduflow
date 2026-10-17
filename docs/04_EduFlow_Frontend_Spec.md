@@ -33,6 +33,7 @@
 
 - **Class then Batch dropdown pair** (DB driven; batch list depends on class).
 - **Fee badge**: 🔴 Pending, 🟡 Partial, 🟢 Paid (read from the `enrollment_fees` view only).
+- **Attendance % badge**: shows live percentage from `v_attendance_summary`; warning style below 75%.
 - **Confirm dialog** (reusable) with a summary block and Confirm/Cancel.
 - **Undo toast** after archive actions.
 - **Status chip** for messages: Sent, Delivered, Read, Failed (+ Retry), Template: Pending/Approved/Rejected.
@@ -58,20 +59,23 @@
 
 ### 6.4 Students
 
-- Filters: class, batch, fee status, search by name/parent phone. Table `studentsTable`: Name, Class/Batch, Parent name, Parent number, Joined, Fee badge, Actions (View, Send Reminder, Archive).
+- **Sections per class, never mixed:** the page renders one section per class (8th, 9th, 10th), with batches listed inside each class section. A student's class always comes from the batch of their active enrollment (read from `v_students_overview`); a promoted student gets a new enrollment in the new class and the old enrollment ends. There is no cross-class mixed table.
+- **Data source:** the list and detail panel read only from `v_students_overview` (class, batch, student, student_code, parent name, parent phone, enrollment date, fee_total, paid, remaining, fee status).
+- **Compact rows:** each row shows only: student name with student_code, fee badge, attendance % badge (warning style below 75%, from `v_attendance_summary`), and a small actions menu (View, Send Reminder, Archive).
+- **Detail panel (tap a row):** parent name and number, enrollment date, fee structure (total/paid/remaining/status), attendance summary (total days, present days, %), and payment history with cancelled entries visible. Plus "Add payment", "Send Reminder", "Remove from batch" (archive, undo).
+- **Mobile:** the row is a card and the detail panel becomes a bottom sheet.
 - **Add student modal:** name, parent name, parent WhatsApp number (10-digit, saved as 91XXXXXXXXXX), class, batch, enrollment date, fee (default from batch, editable), consent tick (parent agreed to messages). Duplicate warnings for same name in batch or same phone.
-- **Student detail (`studentDetailModal`):** enrollment date, parent details, fee summary (Total, Paid, Remaining, badge), payment history with cancelled entries visible, "Add payment", message history, "Remove from batch" (archive, undo).
 
 ### 6.5 Fees
 
-- Table `feesTable`: Student, Batch, Total, Paid, Remaining, Status, Last payment, Actions (Add payment, Send Reminder).
+- Table `feesTable`: Student, Batch, Total, Paid, Remaining, Status, Last payment, Actions (Add payment, Send Reminder). Rows grouped by class section like the Students page.
 - **Add payment flow:** form (amount, mode cash/UPI, date, optional UPI reference) then **confirm screen** showing name, class/batch, parent name, last 4 digits of parent phone, amount, mode, resulting remaining. Client-side checks mirror database rules (amount > 0, not above remaining, duplicate warning).
 - **Cancel payment:** reason required, original stays visible as Cancelled.
 - No "mark as paid" control anywhere.
 
 ### 6.6 Attendance
 
-- Pick class, batch, date (default today). List of students with Present/Absent toggle (default Present), "Save attendance".
+- Pick class, batch, date (default today). List of students with Present/Absent toggle (default Present), "Save attendance". Present and Absent are the only statuses for now.
 - After saving: "Notify parents of absent students" opens a preview list (name, parent number, template) with Confirm. Shows per-student result (Sent/Failed). Already-notified students are marked and skipped.
 
 ### 6.7 Messages (log)
