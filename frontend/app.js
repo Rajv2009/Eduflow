@@ -52,31 +52,31 @@
   // ---------- Mobile drawer ----------
   function closeDrawer() {
     const sb = $("sidebar");
-    const bd = $("sidebarBackdrop");
+    const bd = $("sidebarScrim");
     if (sb) sb.classList.remove("open");
     if (bd) bd.classList.remove("show");
   }
 
   function openDrawer() {
     $("sidebar").classList.add("open");
-    $("sidebarBackdrop").classList.add("show");
+    $("sidebarScrim").classList.add("show");
   }
 
-  const hb = $("hamburgerBtn");
+  const hb = $("menuBtn");
   if (hb) hb.addEventListener("click", () => {
     if ($("sidebar").classList.contains("open")) closeDrawer();
     else openDrawer();
   });
-  const bd = $("sidebarBackdrop");
+  const bd = $("sidebarScrim");
   if (bd) bd.addEventListener("click", closeDrawer);
 
   // ---------- "Aane wale features" collapsed group ----------
-  const soonHead = $("soonGroupHead");
+  const soonHead = $("soonToggle");
   if (soonHead) {
     soonHead.addEventListener("click", () => {
-      $("soonGroupList").classList.toggle("open");
-      const chev = $("soonGroupChev");
-      if (chev) chev.textContent = $("soonGroupList").classList.contains("open") ? "▾" : "▸";
+      $("soonItems").classList.toggle("open");
+      const chev = $("soonChev");
+      if (chev) chev.textContent = $("soonItems").classList.contains("open") ? "▾" : "▸";
     });
   }
 
