@@ -68,7 +68,7 @@
 .arch-card .btn{margin-left:auto}
 /* Step 3: Profile modal */
 .profile-modal{width:min(660px,94vw)}
-.stat-boxes{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.stat-boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
 .stat-box{border:1px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center}
 .stat-box-val{font-size:14px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-primary);word-break:break-word}
 .stat-box-val.ok{color:var(--success)}
@@ -87,15 +87,40 @@
 .fee-box .fl{font-size:10.5px;color:var(--text-muted);margin-top:2px}
 .fee-edit-btn{position:absolute;top:2px;right:6px;border:none;background:none;cursor:pointer;color:var(--brand);font-size:14px;padding:2px 4px}
 .pay-list{display:flex;flex-direction:column;gap:8px}
-.pay-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px;flex-wrap:wrap}
-.pay-item.cancelled{opacity:.65;background:var(--bg)}
+.pay-item{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px}
+.pay-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pay-amt{font-weight:700}
 .pay-meta{color:var(--text-secondary);font-size:11.5px}
-.pay-cancel-btn{margin-left:auto}
+.pay-note{font-size:11.5px;color:var(--text-secondary);margin-top:4px;font-style:italic}
+.pay-actions{display:flex;gap:6px;margin-left:auto}
+.pay-item.cancelled,.pay-item.corrected{opacity:.6;background:var(--bg)}
+.pay-item.cancelled{border-style:dashed}
 .prof-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+/* Batch page */
+.bp-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.bp-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.bp-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.bp-stat .v{font-size:18px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text-primary)}
+.bp-stat .l{font-size:11.5px;color:var(--text-secondary);margin-top:2px}
+/* Mobile hamburger drawer */
+.hamburger-btn{display:none;width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--text-secondary);margin-right:10px}
+.sidebar-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:49;display:none}
+.sidebar-backdrop.show{display:block}
+@media(max-width:900px){
+  .hamburger-btn{display:flex}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+}
+/* Coming soon collapsed group */
+.soon-group-head{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--text-muted);cursor:pointer;font-size:13.5px;font-weight:600;user-select:none}
+.soon-group-head:hover{background:var(--bg)}
+.soon-group-head .chev{font-size:10px;transition:.2s}
+.soon-group-list{display:none}
+.soon-group-list.open{display:block}
+.soon-group-list .nav-item{margin-bottom:2px}
 @media(max-width:640px){
   .s-att{width:100%;order:6}
-  .stat-boxes{grid-template-columns:repeat(3,1fr)}
   .s-actions{margin-left:auto}
   .arch-card .btn{margin-left:0;width:100%;justify-content:center}
 }
@@ -131,6 +156,7 @@
 <div id="app" style="display:none">
 
 <header class="topbar">
+  <button class="hamburger-btn" id="hamburgerBtn" type="button" aria-label="Menu">☰</button>
   <div class="logo">
     <div class="logo-icon">EF</div>
     <div class="logo-text">Edu<span>Flow</span> OS</div>
@@ -160,6 +186,14 @@
   </div>
 
   <div class="nav-section">
+    <div class="nav-label">Classes</div>
+    <div class="nav-item" data-page="classes" id="navClasses">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      Classes &amp; Batches
+    </div>
+  </div>
+
+  <div class="nav-section">
     <div class="nav-label">Students</div>
     <div class="nav-item" data-page="students" id="navStudents">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
@@ -180,39 +214,29 @@
   </div>
 
   <div class="nav-section">
-    <div class="nav-label">Classes</div>
-    <div class="nav-item" data-page="classes" id="navClasses">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-      Classes &amp; Batches
+    <div class="nav-label">Baaki</div>
+    <div class="soon-group-head" id="soonGroupHead">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Aane wale features
+      <span class="chev" id="soonGroupChev">▸</span>
     </div>
-  </div>
-
-  <div class="nav-section">
-    <div class="nav-label">Coming soon</div>
-    <div class="nav-item disabled" data-soon="true">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.01 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-      AI Call Log
-      <span class="nav-soon">Soon</span>
-    </div>
-    <div class="nav-item disabled" data-soon="true">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      WhatsApp Messages
-      <span class="nav-soon">Soon</span>
-    </div>
-    <div class="nav-item disabled" data-soon="true">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-      Alerts &amp; Escalations
-      <span class="nav-soon">Soon</span>
-    </div>
-    <div class="nav-item disabled" data-soon="true">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Parent Updates
-      <span class="nav-soon">Soon</span>
-    </div>
-    <div class="nav-item disabled" data-soon="true">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Academic Performance
-      <span class="nav-soon">Soon</span>
+    <div class="soon-group-list" id="soonGroupList">
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        WhatsApp Messages
+      </div>
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Alerts &amp; Escalations
+      </div>
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Parent Updates
+      </div>
+      <div class="nav-item disabled" data-soon="true">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Academic Performance
+      </div>
     </div>
   </div>
 
@@ -221,6 +245,7 @@
     <div style="font-size:11px;color:var(--text-muted)">Phase 2 — DEV</div>
   </div>
 </nav>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- ══════════ MAIN CONTENT ══════════ -->
 <div class="main">
@@ -240,7 +265,60 @@
     <div class="card">
       <div class="card-header"><div class="card-title">Shell ready — next steps</div></div>
       <div class="card-body">
-        <p style="font-size:13px;color:var(--text-secondary)">Login + sidebar working hai. Ab agle steps: Classes &amp; Batches page, phir Students page, phir Attendance aur Fees.</p>
+        <p style="font-size:13px;color:var(--text-secondary)">Login + sidebar working hai. Agle steps: Attendance page, phir Fees page.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-classes" class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Classes &amp; Batches</div>
+        <div class="page-sub">Add, rename, archive, restore. Delete kabhi nahi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="classes-toolbar">
+          <div class="toggle-row">
+            <label class="toggle-item" for="toggleShowArchivedClasses">
+              <input type="checkbox" id="toggleShowArchivedClasses">
+              <span>Show archived classes</span>
+            </label>
+            <label class="toggle-item" for="toggleShowArchivedBatches">
+              <input type="checkbox" id="toggleShowArchivedBatches">
+              <span>Show archived batches</span>
+            </label>
+          </div>
+          <button class="btn btn-primary" id="addClassBtn" type="button">Add Class</button>
+        </div>
+
+        <div id="classesList" class="classes-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-batch" class="page">
+    <div class="bp-toolbar">
+      <button class="btn btn-secondary btn-sm" id="bpBackBtn" type="button">← Back</button>
+      <button class="btn btn-primary btn-sm" id="bpAddStudentBtn" type="button">Add student</button>
+      <button class="btn btn-secondary btn-sm" id="bpTakeAttBtn" type="button" disabled data-tip="Attendance Step 4 mein aayega">Take attendance</button>
+    </div>
+    <div class="page-header" style="margin-bottom:16px">
+      <div>
+        <div class="page-title" id="bpTitle">Batch</div>
+        <div class="page-sub" id="bpSub"></div>
+      </div>
+    </div>
+    <div class="bp-summary">
+      <div class="bp-stat"><div class="v" id="bpStudentCount">—</div><div class="l">Students</div></div>
+      <div class="bp-stat"><div class="v" id="bpPendingFees">—</div><div class="l">Total pending fees</div></div>
+      <div class="bp-stat"><div class="v" id="bpAvgAttendance">—</div><div class="l">Avg attendance</div></div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div id="bpStudentRows" class="student-rows"></div>
       </div>
     </div>
   </div>
@@ -277,35 +355,6 @@
   <div id="page-fees" class="page">
     <div class="page-header"><div><div class="page-title">Fee Management</div><div class="page-sub">Fees page — Step 5 mein aayega</div></div></div>
     <div class="empty-state">Coming in Step 5 🐢</div>
-  </div>
-
-  <div id="page-classes" class="page">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Classes &amp; Batches</div>
-        <div class="page-sub">Add, rename, archive, restore. Delete kabhi nahi.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-body">
-        <div class="classes-toolbar">
-          <div class="toggle-row">
-            <label class="toggle-item" for="toggleShowArchivedClasses">
-              <input type="checkbox" id="toggleShowArchivedClasses">
-              <span>Show archived classes</span>
-            </label>
-            <label class="toggle-item" for="toggleShowArchivedBatches">
-              <input type="checkbox" id="toggleShowArchivedBatches">
-              <span>Show archived batches</span>
-            </label>
-          </div>
-          <button class="btn btn-primary" id="addClassBtn" type="button">Add Class</button>
-        </div>
-
-        <div id="classesList" class="classes-list"></div>
-      </div>
-    </div>
   </div>
 
 </div>
@@ -372,7 +421,7 @@
   </div>
 </div>
 
-<!-- Step 3: Add Student modal -->
+<!-- Add Student modal -->
 <div class="modal-overlay" id="studentModalOverlay" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
     <div class="modal-head">
@@ -433,7 +482,7 @@
   </div>
 </div>
 
-<!-- Step 3: Student Profile modal (prototype look) -->
+<!-- Student Profile modal (prototype look) -->
 <div class="modal-overlay" id="profileModalOverlay" aria-hidden="true">
   <div class="modal profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
     <div class="modal-head">
@@ -446,10 +495,8 @@
     <div class="modal-body">
       <div class="stat-boxes">
         <div class="stat-box"><div class="stat-box-val" id="pfAttPercent">—</div><div class="stat-box-label">Attendance %</div></div>
-        <div class="stat-box"><div class="stat-box-val" id="pfFeeStatus">—</div><div class="stat-box-label">Fee Status</div></div>
+        <div class="stat-box"><div class="stat-box-val" id="pfFeeStatus">—</div><div class="stat-box-label" id="pfFeeStatusLabel">Fee Status</div></div>
         <div class="stat-box"><div class="stat-box-val" id="pfDays">—</div><div class="stat-box-label">Days Present / Total</div></div>
-        <div class="stat-box"><div class="stat-box-val">—</div><div class="stat-box-label">Last Test</div></div>
-        <div class="stat-box"><div class="stat-box-val">—</div><div class="stat-box-label">Class Rank</div></div>
       </div>
 
       <div class="prof-block">
@@ -483,6 +530,7 @@
       </div>
 
       <div class="prof-actions">
+        <button class="btn btn-primary btn-sm" id="pfAddPayBtn" type="button">Add payment</button>
         <button class="btn btn-secondary btn-sm" id="pfEditBtn" type="button">Edit</button>
         <button class="btn btn-secondary btn-sm" id="pfMoveBtn" type="button">Move</button>
         <button class="btn btn-danger btn-sm" id="pfRemoveBtn" type="button">Remove from batch</button>
@@ -495,7 +543,7 @@
   </div>
 </div>
 
-<!-- Step 3: Edit Student modal -->
+<!-- Edit Student modal -->
 <div class="modal-overlay" id="editStudentOverlay" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editStudentTitle">
     <div class="modal-head">
@@ -542,7 +590,7 @@
   </div>
 </div>
 
-<!-- Step 3: Move Student modal -->
+<!-- Move Student modal -->
 <div class="modal-overlay" id="moveStudentOverlay" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="moveStudentTitle">
     <div class="modal-head">
@@ -576,7 +624,7 @@
   </div>
 </div>
 
-<!-- Step 3: Edit Fee modal -->
+<!-- Edit Fee modal -->
 <div class="modal-overlay" id="feeEditOverlay" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="feeEditTitle">
     <div class="modal-head">
@@ -600,7 +648,110 @@
   </div>
 </div>
 
-<!-- Step 3: Cancel Payment modal -->
+<!-- Add Payment modal (2 views: form -> confirm) -->
+<div class="modal-overlay" id="addPayOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addPayTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="addPayTitle">Add Payment</div>
+      <button class="modal-close" id="closeAddPayBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="addPayFormView">
+        <form id="addPayForm">
+          <div class="form-group" style="margin-bottom:12px">
+            <label for="addPayAmount">Amount (₹)</label>
+            <input id="addPayAmount" type="number" min="1" step="0.01" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="addPayDate">Date (aaj se aage nahi)</label>
+              <input id="addPayDate" type="date" required>
+            </div>
+            <div class="form-group">
+              <label for="addPayMode">Mode</label>
+              <select id="addPayMode">
+                <option value="cash">Cash</option>
+                <option value="upi">UPI</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px" id="addPayTxnWrap">
+            <label for="addPayTxnRef">UPI reference (optional)</label>
+            <input id="addPayTxnRef" type="text" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="addPayNote">Note (optional)</label>
+            <input id="addPayNote" type="text" maxlength="200">
+          </div>
+          <div id="addPayError" class="login-error" style="margin-top:12px"></div>
+          <div class="modal-footer" style="padding:16px 0 0;border:none">
+            <button type="button" class="btn btn-secondary" id="cancelAddPayBtn">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="confirmPayBtn">Confirm</button>
+          </div>
+        </form>
+      </div>
+      <div id="addPayConfirmView" style="display:none">
+        <div class="prof-block">
+          <div class="prof-block-title">Confirm karo</div>
+          <div class="prof-rows">
+            <div class="prof-row"><span class="k">Student</span><span class="v" id="apcName">—</span></div>
+            <div class="prof-row"><span class="k">Class / Batch</span><span class="v" id="apcClassBatch">—</span></div>
+            <div class="prof-row"><span class="k">Parent</span><span class="v" id="apcParent">—</span></div>
+            <div class="prof-row"><span class="k">Phone (last 4)</span><span class="v" id="apcPhone">—</span></div>
+            <div class="prof-row"><span class="k">Amount</span><span class="v" id="apcAmount">—</span></div>
+            <div class="prof-row"><span class="k">Iske baad remaining</span><span class="v" id="apcRemaining">—</span></div>
+          </div>
+        </div>
+        <div id="addPayConfirmError" class="login-error"></div>
+        <div class="modal-footer" style="padding:16px 0 0;border:none">
+          <button type="button" class="btn btn-secondary" id="backAddPayBtn">← Back</button>
+          <button type="button" class="btn btn-primary" id="savePaymentBtn">Save Payment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Payment modal -->
+<div class="modal-overlay" id="editPayOverlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editPayTitle">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="editPayTitle">Edit Payment</div>
+        <div id="editPaySub" style="font-size:12px;color:var(--text-secondary);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" id="closeEditPayBtn" type="button" aria-label="Close">×</button>
+    </div>
+    <form id="editPayForm">
+      <div class="modal-body">
+        <div style="font-size:12.5px;color:var(--text-secondary);background:var(--warn-bg);border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;margin-bottom:14px">
+          Amount badalne pe purani entry history me <b>"Corrected"</b> bankar dikhegi — kabhi delete nahi hoti.
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="editPayDate">Date</label>
+            <input id="editPayDate" type="date" required>
+          </div>
+          <div class="form-group">
+            <label for="editPayAmount">Amount (₹)</label>
+            <input id="editPayAmount" type="number" min="1" step="0.01" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editPayNote">Note</label>
+          <input id="editPayNote" type="text" maxlength="200">
+        </div>
+        <div id="editPayError" class="login-error" style="margin-top:12px"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelEditPayBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="saveEditPayBtn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Cancel Payment modal -->
 <div class="modal-overlay" id="cancelPayOverlay" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cancelPayTitle">
     <div class="modal-head">
@@ -626,14 +777,16 @@
   </div>
 </div>
 
-<!-- Load order: 1) supabase-js CDN (pinned exact version) 2) config 3) supabase.js 4) app.js 5) classes.js 6) students.js 7) student_profile.js -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
-<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"><\/script>')}</script>
+<!-- Load order: 1) supabase-js CDN (unpkg primary, jsdelivr fallback — India-safe) 2) config 3) supabase.js 4) app.js 5) classes.js 6) students.js 7) student_profile.js 8) batch_page.js 9) payments.js -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script>if(!window.supabase){document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"><\\/script>')}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
 <script src="app.js"></script>
 <script src="classes.js"></script>
 <script src="students.js"></script>
 <script src="student_profile.js"></script>
+<script src="batch_page.js"></script>
+<script src="payments.js"></script>
 </body>
 </html>
